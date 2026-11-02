@@ -12,8 +12,8 @@ The app already supports 13 school subjects, multiple exam combinations, Vietnam
 
 ## Missing or incomplete capabilities
 
-- There are no notebooks, editable notes, DOCX ingestion, source chunks, embeddings, vector retrieval, exact passage/page citations, source-selection controls, flashcards/spaced repetition, import/export, or delete-all-data workflow.
-- Responses are non-streaming; chat has no stop/regenerate/copy controls. There is no command palette, keyboard help, panel layout system, or theme editor.
+- There are no notebooks, editable notes, DOCX ingestion, source chunks, embeddings, vector retrieval, exact passage/page citations, source-selection controls, flashcards/spaced repetition, study-data import/export, or delete-all-data workflow.
+- Responses are non-streaming; chat has no stop/regenerate/copy controls. There is no command palette, keyboard help, or panel layout system.
 - Model fallback exists for failed generations, but there is no configured embedding-model discovery or embedding status. Context size and keep-alive are not exposed as configuration.
 - Education headlines and public HTTPS import require external network access; these conflict with the requested fully-offline guarantee.
 
@@ -37,3 +37,10 @@ No CDN, remote font, analytics, or update-check request was present in the shipp
 - Kept paste/upload source intake. Runtime network use now goes only to same-origin LocalNote APIs and loopback Ollama.
 - Added frontend URL and Python loopback-guard tests.
 - Added configurable chat-model preference, context size, keep-alive, and optional Qwen3 thinking mode. Existing documents and chat tables were not migrated or modified.
+
+## Phase B changes
+
+- Added Theme Studio with ten presets, live color/typography/layout controls, light/dark/system/time modes, warm-light filter, motion levels, and a smart generation-time motion pause.
+- Added contrast checks, custom theme save/rename/duplicate/delete, and validated JSON import/export. Preferences stay in browser storage; no SQLite schema change was needed.
+- Kept the stylesheet CSP strict by applying validated appearance values to the same-origin stylesheet through CSSOM rather than adding inline styles.
+- Added responsive settings controls and tests for wiring, local persistence, and CSP compatibility. Keyboard command palette and hotkeys remain a Phase C gap.

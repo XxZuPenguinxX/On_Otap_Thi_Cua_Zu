@@ -139,7 +139,7 @@ Sau đó mở `http://127.0.0.1:8766`. Nếu thay đổi cổng, hãy dùng đú
 - Tài liệu, ghi chú **và các lượt trò chuyện trợ lý đã hoàn tất** được lưu vào SQLite trên ổ cứng. Trên Windows, tệp thường ở `%LOCALAPPDATA%\LocalNote\study.sqlite3` (thường là `C:\Users\<tên-bạn>\AppData\Local\LocalNote\study.sqlite3`); trên macOS/Linux, tệp ở `$XDG_DATA_HOME/LocalNote/study.sqlite3` nếu biến này được đặt, nếu không thì `~/.local/share/LocalNote/study.sqlite3`. Mở **Cài đặt** để xem hoặc sao chép đường dẫn chính xác.
 - Lịch sử gần đây sẽ xuất hiện lại khi bạn mở mục **Trợ lý học tập**. Ứng dụng hiển thị 100 lượt gần nhất. Yêu cầu chưa có câu trả lời hoặc bị ngắt đột ngột có thể chưa được lưu.
 - Sao lưu: dừng LocalNote bằng **Ctrl+C**, sau đó sao chép `study.sqlite3` sang ổ đĩa khác hoặc nơi sao lưu riêng. Khôi phục bằng cách chép tệp sao lưu trở lại thư mục dữ liệu nêu trên khi ứng dụng đã dừng.
-- Tùy chọn ngôn ngữ, model và tổ hợp thi được lưu trong hồ sơ trình duyệt trên máy. Không xóa dữ liệu trình duyệt nếu muốn giữ các lựa chọn này.
+- Tùy chọn ngôn ngữ, model, tổ hợp thi và giao diện Theme Studio được lưu trong hồ sơ trình duyệt trên máy. Không xóa dữ liệu trình duyệt nếu muốn giữ các lựa chọn này.
 
 ### 6. Bắt đầu ôn tập
 
@@ -150,6 +150,7 @@ Sau đó mở `http://127.0.0.1:8766`. Nếu thay đổi cổng, hãy dùng đú
 5. Riêng **Ngữ Văn**, chọn **Chấm bài Văn**, dán bài viết và yêu cầu nhận xét. Phản hồi là góp ý tham khảo theo tiêu chí, không phải điểm thi chính thức.
 6. **Trợ lý học tập** hỗ trợ hỏi đáp theo môn, lưu lịch sử trên máy và ưu tiên nguồn tài liệu đã thêm.
 7. Chuyển giao diện Việt/Anh bằng nút **EN/VI** ở góc trên; đổi model đã cài trong mục **Cài đặt**.
+8. Trong **Cài đặt → Theme Studio**, chọn bộ giao diện, tùy chỉnh màu sắc và kiểu chữ, đổi sáng/tối, chỉnh chuyển động; giao diện tùy chỉnh có thể lưu, nhập hoặc xuất JSON.
 
 ## Dữ liệu, quyền riêng tư và giới hạn
 
@@ -323,7 +324,7 @@ Then open `http://127.0.0.1:8766`. Use that same port throughout the session.
 - Documents, notes, **and completed assistant chat turns** are stored in SQLite on your hard drive. On Windows, the file is usually `%LOCALAPPDATA%\LocalNote\study.sqlite3` (typically `C:\Users\<your-name>\AppData\Local\LocalNote\study.sqlite3`); on macOS/Linux, it is `$XDG_DATA_HOME/LocalNote/study.sqlite3` when that variable is set, otherwise `~/.local/share/LocalNote/study.sqlite3`. Open **Settings** to view or copy the exact path.
 - Recent history reappears when you open **Study assistant**. The app displays the most recent 100 turns. A request without a response or interrupted unexpectedly may not be saved.
 - To back up: stop LocalNote with **Ctrl+C**, then copy `study.sqlite3` to another drive or backup location. To restore, copy the backup into the data folder above while the app is stopped.
-- Language, model, and exam-combination preferences are saved in the browser profile on this computer. Do not clear the browser data if you want to keep those preferences.
+- Language, model, exam-combination, and Theme Studio preferences are saved in the browser profile on this computer. Do not clear the browser data if you want to keep those preferences.
 
 ### 6. Start studying
 
@@ -334,6 +335,7 @@ Then open `http://127.0.0.1:8766`. Use that same port throughout the session.
 5. For **Ngữ Văn** (Literature), select **Chấm bài Văn** (Grade literature), paste an essay, and request feedback. The response is formative rubric-based feedback, not an official exam grade.
 6. **Study assistant** answers subject-related questions, keeps local chat history, and prioritizes your added study sources.
 7. Switch between Vietnamese and English with the **EN/VI** button in the top bar; change the installed AI model in **Settings**.
+8. In **Settings → Theme Studio**, choose a preset, customize colors and typography, switch light/dark appearance, and tune motion. Custom themes can be saved or imported/exported as JSON.
 
 ## Data, privacy, and limitations
 

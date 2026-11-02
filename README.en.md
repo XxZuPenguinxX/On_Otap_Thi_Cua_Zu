@@ -89,12 +89,13 @@ Then open `http://127.0.0.1:8766`.
 3. Choose a subject and create a summary, double-check, or five-question practice quiz from saved materials.
 4. For Literature, request rubric-based formative feedback on an essay.
 5. Use **Study assistant** for subject questions grounded in your sources.
+6. In **Settings → Theme Studio**, choose a preset, customize colors and typography, switch light/dark appearance, and tune motion. Custom themes can be saved or imported/exported as JSON.
 
 The app does not fetch external websites or education news. Runtime network requests are limited to the LocalNote server and the Ollama server on loopback. Downloading the app, installing Ollama/models, and installing Python packages require Internet during setup.
 
 ## Local data and privacy
 
-Documents and completed assistant turns are stored in SQLite outside the Git repository. On Windows, the default path is `%LOCALAPPDATA%\LocalNote\study.sqlite3`; Settings shows the exact path. Stop the app before copying this file for backup. Language, selected model, exam combinations, and Qwen3 thinking preference are stored in the browser profile.
+Documents and completed assistant turns are stored in SQLite outside the Git repository. On Windows, the default path is `%LOCALAPPDATA%\LocalNote\study.sqlite3`; Settings shows the exact path. Stop the app before copying this file for backup. Language, selected model, exam combinations, Theme Studio preferences, and Qwen3 thinking preference are stored in the browser profile.
 
 The HTTP server binds to `127.0.0.1`. Study content is sent only to the local Ollama service for AI generation; there is no telemetry or cloud AI fallback. Model output may still be inaccurate, so check important claims against your original material.
 

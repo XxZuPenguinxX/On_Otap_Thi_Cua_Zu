@@ -136,7 +136,8 @@ function renderSettings() {
     <section class="settings-section"><label class="setting-toggle-row"><input id="thinking-mode" type="checkbox" ${state.thinkingMode ? "checked" : ""}><span><strong>${escapeHTML(t("thinkingMode"))}</strong><small>${escapeHTML(t("thinkingHint"))}</small></span></label></section>
     <section class="settings-section"><h2>${escapeHTML(t("settingsData"))}</h2><p class="subheading">${escapeHTML(t("settingsDataHint"))} ${state.documents.length} ${escapeHTML(t("documentCount"))}; ${state.status?.conversation_count || 0} ${escapeHTML(t("historyCount"))}.</p>
       <label class="form-help">${escapeHTML(t("dataLocation"))}</label><code class="data-location" id="data-location">${escapeHTML(state.status?.data_path || "")}</code>
-      <button class="text-button" id="copy-data-path">${state.language === "vi" ? "Sao chép đường dẫn" : "Copy path"} ↗</button></section>`;
+      <button class="text-button" id="copy-data-path">${state.language === "vi" ? "Sao chép đường dẫn" : "Copy path"} ↗</button></section>
+    ${window.LocalNoteThemeStudio.render(state.language)}`;
 }
 
 function updateStatus() {
@@ -227,6 +228,9 @@ function render() {
   else if (state.view === "assistant") workspace.innerHTML = renderAssistant();
   else if (state.view === "settings") workspace.innerHTML = renderSettings();
 }
+window.localNoteRefreshSettings = () => {
+  if (state.view === "settings") render();
+};
 
 function subjectTile(subject) {
   const selected = comboNames().includes(subject.name);
@@ -409,6 +413,7 @@ function showResult(data, mode) {
 async function runAI(mode, query) {
   const result = $("#ai-result");
   if (!result) return;
+  window.LocalNoteThemeStudio?.setGenerating(true);
   result.innerHTML = `<div class="output-panel loading-inline"><span class="spinner"></span>${escapeHTML(t("thinking"))}</div>`;
   try {
     const data = await api("/api/ai", {
@@ -419,6 +424,8 @@ async function runAI(mode, query) {
     showResult(data, mode);
   } catch (error) {
     result.innerHTML = `<div class="error-panel">${escapeHTML(t("failed"))} ${escapeHTML(error.message)}</div>`;
+  } finally {
+    window.LocalNoteThemeStudio?.setGenerating(false);
   }
 }
 
@@ -471,6 +478,7 @@ function gradeQuiz() {
 }
 
 document.addEventListener("click", async (event) => {
+  if (window.LocalNoteThemeStudio?.handleClick(event, notify)) return;
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) { event.preventDefault(); setView(viewButton.dataset.view); return; }
   const subButton = event.target.closest("[data-subject]");
@@ -566,6 +574,7 @@ function selectModel(event) {
 
 $("#local-model").addEventListener("change", selectModel);
 document.addEventListener("change", (event) => {
+  if (window.LocalNoteThemeStudio?.handleChange(event, notify)) return;
   if (event.target.id === "settings-model") selectModel(event);
   if (event.target.id === "thinking-mode") {
     state.thinkingMode = event.target.checked;
@@ -574,6 +583,7 @@ document.addEventListener("change", (event) => {
 });
 
 document.addEventListener("input", (event) => {
+  window.LocalNoteThemeStudio?.handleInput(event);
   if (event.target.id === "subject-search") {
     const query = event.target.value.toLocaleLowerCase();
     $$(".subject-row").forEach((row) => { row.hidden = !row.textContent.toLocaleLowerCase().includes(query); });
@@ -606,6 +616,7 @@ document.addEventListener("submit", async (event) => {
     const subject = SUBJECTS.find((item) => item.name === subjectNameValue) || SUBJECTS[0];
     if (!query) return;
     state.chat.push({ role: "user", text: query });
+    window.LocalNoteThemeStudio?.setGenerating(true);
     render();
     const history = $("#chat-history");
     history?.scrollTo({ top: history.scrollHeight, behavior: "smooth" });
@@ -633,6 +644,7 @@ document.addEventListener("submit", async (event) => {
     } catch (error) {
       notify(`${t("historySaveFailed")} ${error.message}`);
     }
+    window.LocalNoteThemeStudio?.setGenerating(false);
     render();
     $("#chat-history")?.scrollTo({ top: $("#chat-history").scrollHeight, behavior: "smooth" });
   }

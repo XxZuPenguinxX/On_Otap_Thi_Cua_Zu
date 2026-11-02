@@ -18,7 +18,7 @@ Study support is grounded in student-provided sources and a local Ollama model; 
 Students select one or more exam subject combinations, add study sources, and work subject by subject. The default interface language is Vietnamese, with an English option.
 
 ## Capabilities and Constraints
-The app runs on the student's computer, stores documents in a local SQLite database, and calls Ollama on loopback. AI tasks use a second local-model pass to check the first draft against available source excerpts and mark unsupported claims. Runtime network access is limited to the local app and Ollama; the app does not fetch news or public web pages. Model output may still be wrong and requires student verification. OCR and unsupported document formats are not promised.
+The app runs on the student's computer, stores documents in a local SQLite database, and calls Ollama on loopback. AI tasks use a second local-model pass to check the first draft against available source excerpts and mark unsupported claims. Runtime network access is limited to the local app and Ollama; the app does not fetch news or public web pages. Appearance preferences and custom themes stay in the local browser profile. Model output may still be wrong and requires student verification. OCR and unsupported document formats are not promised.
 
 ## Brand Commitments
 The requested product name is "LocalNote". The interface should be minimal, lively with restrained subject emojis, bilingual, and Vietnamese-first.
