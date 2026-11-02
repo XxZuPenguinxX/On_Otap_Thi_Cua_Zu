@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f8">
+  <meta name="description" content="Không gian ôn tập cá nhân, chạy local và dùng AI từ tài liệu của bạn.">
+  <title>LocalNote — Góc ôn tập của bạn</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <!--
+  THESIS: A source-first study desk that refuses the generic chatbot-as-dashboard arrangement.
+  OWN-WORLD: Mist-white work surface, deep ink-blue type, teal action marks, subject emoji, and fine ruled dividers.
+  STORY: Students see their subjects and personal sources, select a study action, then verify every generated claim.
+  FIRST VIEWPORT: Fixed slim navigation rail at left; at right, a concise welcome, Ollama state, and a horizontal subject-combination strip above the study canvas.
+  FORM: Operate workspace; the chosen source-first arrangement is native to this product's daily review task.
+  -->
+  <div class="app-shell">
+    <aside class="rail" aria-label="Điều hướng chính">
+      <a class="brand" href="#" data-view="dashboard" aria-label="LocalNote">
+        <span class="brand-mark">ln<span>.</span></span>
+        <span class="brand-name">local<br><b>note</b></span>
+      </a>
+      <nav class="primary-nav">
+        <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span><span data-vi="Tổng quan" data-en="Overview">Tổng quan</span></button>
+        <button class="nav-item" data-view="subjects"><span class="nav-icon">▦</span><span data-vi="Môn học" data-en="Subjects">Môn học</span></button>
+        <button class="nav-item" data-view="library"><span class="nav-icon">▤</span><span data-vi="Nguồn của bạn" data-en="Your sources">Nguồn của bạn</span><span class="nav-count" id="source-count">0</span></button>
+        <button class="nav-item" data-view="news"><span class="nav-icon">↗</span><span data-vi="Tin giáo dục" data-en="Education news">Tin giáo dục</span></button>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span><span data-vi="Cài đặt" data-en="Settings">Cài đặt</span></button>
+      </nav>
+      <div class="rail-bottom">
+        <div class="local-note">
+          <span class="pulse-dot"></span>
+          <span><b data-vi="AI chạy tại máy" data-en="AI runs locally">AI chạy tại máy</b><small id="rail-model">Đang kiểm tra…</small></span>
+        </div>
+        <button class="nav-item assistant-link" data-view="assistant"><span class="nav-icon">✳</span><span data-vi="Trợ lý học tập" data-en="Study assistant">Trợ lý học tập</span></button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div class="breadcrumbs"><span data-vi="Không gian ôn tập" data-en="Study space">Không gian ôn tập</span><span class="crumb-dot">·</span><span id="current-crumb">Hôm nay</span></div>
+        <div class="top-actions">
+          <span class="connection-pill" id="connection-pill"><i></i><span id="connection-label">Đang kết nối AI…</span></span>
+          <select class="model-select" id="local-model" aria-label="Mô hình AI local" disabled></select>
+          <button class="language-switch" id="language-toggle" aria-label="Switch language">EN <span>↗</span></button>
+          <button class="avatar" title="Zu">Z</button>
+        </div>
+      </header>
+
+      <div class="combination-bar">
+        <span class="combination-label" data-vi="Tổ hợp của bạn" data-en="Your combinations">Tổ hợp của bạn</span>
+        <div id="combination-chips" class="combination-chips"></div>
+        <button class="text-button" id="edit-combinations"><span>＋</span><span data-vi="Chọn tổ hợp" data-en="Choose combinations">Chọn tổ hợp</span></button>
+      </div>
+
+      <section id="workspace" class="workspace" aria-live="polite"></section>
+      <footer class="footer-note">
+        <span>✦</span>
+        <span data-vi="AI là bạn đồng hành, không thay thế nguồn chính thống. Hãy kiểm tra lại kiến thức quan trọng." data-en="AI is a study companion, not an authority. Verify important claims against trusted sources.">AI là bạn đồng hành, không thay thế nguồn chính thống. Hãy kiểm tra lại kiến thức quan trọng.</span>
+      </footer>
+    </main>
+  </div>
+  <dialog id="combination-dialog" class="dialog">
+    <form method="dialog" class="dialog-head">
+      <div><h2 data-vi="Tổ hợp xét tuyển" data-en="Exam combinations">Tổ hợp xét tuyển</h2><p data-vi="Chọn một hoặc nhiều tổ hợp để Zu ưu tiên đào sâu các môn liên quan." data-en="Choose one or more combinations so Zu can focus on the relevant subjects.">Chọn một hoặc nhiều tổ hợp để Zu ưu tiên đào sâu các môn liên quan.</p></div>
+      <button class="icon-button close-dialog" aria-label="Đóng">×</button>
+    </form>
+    <div id="combination-options" class="combination-options"></div>
+    <div class="dialog-foot"><span data-vi="Bạn có thể đổi lựa chọn bất cứ lúc nào." data-en="You can change this anytime.">Bạn có thể đổi lựa chọn bất cứ lúc nào.</span><button class="button button-primary" id="save-combinations" data-vi="Lưu tổ hợp" data-en="Save choices">Lưu tổ hợp</button></div>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>
