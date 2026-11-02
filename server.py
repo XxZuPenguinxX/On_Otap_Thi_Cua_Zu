@@ -85,6 +85,16 @@ def connect_db():
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             )"""
         )
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subject TEXT NOT NULL,
+                prompt TEXT NOT NULL,
+                response TEXT NOT NULL,
+                model TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
         yield db
         db.commit()
     except Exception:
@@ -775,12 +785,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 models, connected, error = [], False, str(exc)
             with connect_db() as db:
                 document_count = db.execute("SELECT COUNT(*) FROM documents").fetchone()[0]
+                conversation_count = db.execute("SELECT COUNT(*) FROM conversations").fetchone()[0]
             self.send_json(200, {
                 "ollama_connected": connected,
                 "ollama_error": error,
                 "models": models,
                 "selected_model": choose_model(models),
                 "document_count": document_count,
+                "conversation_count": conversation_count,
+                "data_path": str(DB_PATH),
             })
         elif path == "/api/documents":
             with connect_db() as db:
@@ -788,6 +801,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "SELECT id, title, subject, source_type, source_url, created_at, length(content) AS chars FROM documents ORDER BY created_at DESC"
                 ).fetchall()
             self.send_json(200, [dict(row) for row in rows])
+        elif path == "/api/conversations":
+            with connect_db() as db:
+                rows = db.execute(
+                    """SELECT id, subject, prompt, response, model, created_at
+                       FROM conversations ORDER BY id DESC LIMIT 100"""
+                ).fetchall()
+            self.send_json(200, [dict(row) for row in reversed(rows)])
         elif path == "/api/news":
             items, errors = fetch_news()
             term = query.get("q", [""])[0].strip().lower()
@@ -819,6 +839,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.import_url(parse_json_object(raw))
             elif path == "/api/ai":
                 self.ai_action(parse_json_object(raw))
+            elif path == "/api/conversations":
+                self.create_conversation(parse_json_object(raw))
             else:
                 self.send_json(404, {"error": "Không tìm thấy API."})
         except (ValueError, json.JSONDecodeError) as exc:
@@ -853,6 +875,23 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if len(content) < 80:
             raise ValueError("Không trích xuất được đủ văn bản từ trang; hãy thử dán nội dung.")
         self.create_document({"title": title[:200], "subject": subject, "content": content}, "url", url)
+
+    def create_conversation(self, data: dict[str, str]) -> None:
+        subject = str(data.get("subject", "")).strip()[:120]
+        prompt = str(data.get("prompt", "")).strip()
+        response = str(data.get("response", "")).strip()
+        model = str(data.get("model", "")).strip()[:160]
+        if not subject or not prompt or not response:
+            raise ValueError("Cần có môn học, câu hỏi và câu trả lời để lưu lịch sử.")
+        if len(prompt) > 30_000 or len(response) > 100_000:
+            raise ValueError("Nội dung cuộc trò chuyện vượt quá giới hạn lưu trữ.")
+        with connect_db() as db:
+            cursor = db.execute(
+                """INSERT INTO conversations (subject, prompt, response, model)
+                   VALUES (?, ?, ?, ?)""",
+                (subject, prompt, response, model),
+            )
+        self.send_json(201, {"id": cursor.lastrowid, "saved": True})
 
     def ai_action(self, data: dict[str, str]) -> None:
         mode = str(data.get("mode", "assistant"))
@@ -908,7 +947,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_DELETE(self) -> None:
         if not self.valid_host() or not self.valid_origin():
             return
-        match = re.fullmatch(r"/api/documents/(\d+)", urllib.parse.urlsplit(self.path).path)
+        path = urllib.parse.urlsplit(self.path).path
+        if path == "/api/conversations":
+            with connect_db() as db:
+                db.execute("DELETE FROM conversations")
+            self.send_json(200, {"deleted": True})
+            return
+        match = re.fullmatch(r"/api/documents/(\d+)", path)
         if not match or len(match.group(1)) > 10:
             self.send_json(404, {"error": "Không tìm thấy tài liệu."})
             return

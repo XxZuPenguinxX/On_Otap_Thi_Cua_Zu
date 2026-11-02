@@ -55,6 +55,7 @@ const COPY = {
     assistantTitle: "Trợ lý học tập của bạn", assistantIntro: "Hỏi về bài đang học. Zu ưu tiên tài liệu bạn đã thêm và sẽ nói rõ khi chưa đủ căn cứ.", askPlaceholder: "Nhập câu hỏi của bạn…", send: "Gửi", noAssistantDocs: "Chưa có nguồn của bạn; câu trả lời chung có thể không khớp đề cương.",
     ollamaReady: "AI local đã sẵn sàng", ollamaMissing: "Chưa kết nối Ollama", ollamaNoModel: "Chưa có mô hình", checking: "Đang kiểm tra…", useModel: "Mô hình", installModel: "Cài Ollama, rồi tải model chat tương thích mà bạn chọn.",
     settingsTitle: "Cài đặt", settingsHint: "Chọn mô hình đã cài trong Ollama. Zu không tải mô hình hoặc gửi tài liệu lên đám mây.", modelLabel: "Mô hình AI local", noModels: "Chưa có mô hình Ollama", settingsLanguage: "Ngôn ngữ giao diện", settingsData: "Dữ liệu học tập", settingsDataHint: "Tài liệu và ghi chú được lưu trong SQLite trên máy này.",
+    dataLocation: "Tệp dữ liệu trên máy", historySaved: "Lịch sử trợ lý được lưu trên máy này.", historyCount: "lượt đã lưu", clearHistory: "Xóa lịch sử trò chuyện", clearHistoryConfirm: "Xóa toàn bộ lịch sử trợ lý khỏi máy này? Tài liệu nguồn sẽ không bị xóa.", historyCleared: "Đã xóa lịch sử trò chuyện.", historySaveFailed: "Không lưu được lượt trò chuyện vào ổ đĩa.",
     save: "Lưu", saved: "Đã lưu", cancelled: "Đã hủy",     done: "Hoàn tất", submitQuiz: "Chấm bài luyện tập", quizScore: "Kết quả", quizEmpty: "Mô hình chưa trả về định dạng câu hỏi hợp lệ. Hãy thử tạo lại.", essayInvalid: "Chưa thể hiển thị nhận xét theo đúng tiêu chí. Hãy thử lại.", quizSource: "Nguồn", language: "Ngôn ngữ",
     newsError: "Lỗi tải tin", noSearchResults: "Không tìm thấy môn phù hợp.", removeConfirm: "Xóa tài liệu này khỏi máy?", emptyResponse: "Mô hình chưa trả về nội dung.",
     useCombo: "Đang ưu tiên", deepFocus: "Zu sẽ đào sâu môn thuộc tổ hợp bạn chọn.", examFocus: "Môn này được tổng hợp theo hướng ôn thi.", studyAction: "Học ngay", welcomeDate: "Một bước nhỏ hôm nay, tự tin hơn ngày mai.", sourceFrom: "Nguồn", sending: "Đang gửi…",
@@ -84,6 +85,7 @@ const COPY = {
     assistantTitle: "Your study assistant", assistantIntro: "Ask about what you are learning. Zu prioritizes your added sources and says when evidence is insufficient.", askPlaceholder: "Type your question…", send: "Send", noAssistantDocs: "No personal sources yet; general answers may not match your curriculum.",
     ollamaReady: "Local AI is ready", ollamaMissing: "Ollama not connected", ollamaNoModel: "No model installed", checking: "Checking…", useModel: "Model", installModel: "Install Ollama, then download a compatible chat model of your choice.",
     settingsTitle: "Settings", settingsHint: "Choose an installed Ollama model. Zu does not download models or send study materials to the cloud.", modelLabel: "Local AI model", noModels: "No Ollama models installed", settingsLanguage: "Interface language", settingsData: "Study data", settingsDataHint: "Documents and notes are stored in SQLite on this computer.",
+    dataLocation: "Local database file", historySaved: "Study assistant history is saved on this computer.", historyCount: "saved turns", clearHistory: "Clear chat history", clearHistoryConfirm: "Delete all assistant chat history from this computer? Study sources will not be deleted.", historyCleared: "Chat history cleared.", historySaveFailed: "Could not save this conversation to disk.",
     save: "Save", saved: "Saved", cancelled: "Cancelled",     done: "Done", submitQuiz: "Check answers", quizScore: "Score", quizEmpty: "The model did not return valid questions. Please try again.", essayInvalid: "Feedback did not match the required rubric. Please try again.", quizSource: "Source", language: "Language",
     newsError: "Feed error", noSearchResults: "No matching subjects found.", removeConfirm: "Delete this source from this computer?", emptyResponse: "The model returned an empty response.",
     useCombo: "Prioritized", deepFocus: "Zu will go deeper on subjects in your selected combinations.", examFocus: "This subject is kept to a concise exam-oriented review.", studyAction: "Study now", welcomeDate: "One small step today, more confidence tomorrow.", sourceFrom: "Source", sending: "Sending…",
@@ -137,7 +139,9 @@ function renderSettings() {
     <section class="settings-section"><span class="form-label">${escapeHTML(t("settingsLanguage"))}</span>
       <button class="button" id="settings-language">${state.language === "vi" ? "Tiếng Việt · VI" : "English · EN"} ↗</button>
     </section>
-    <section class="settings-section"><h2>${escapeHTML(t("settingsData"))}</h2><p class="subheading">${escapeHTML(t("settingsDataHint"))} ${state.documents.length} ${escapeHTML(t("documentCount"))}.</p></section>`;
+    <section class="settings-section"><h2>${escapeHTML(t("settingsData"))}</h2><p class="subheading">${escapeHTML(t("settingsDataHint"))} ${state.documents.length} ${escapeHTML(t("documentCount"))}; ${state.status?.conversation_count || 0} ${escapeHTML(t("historyCount"))}.</p>
+      <label class="form-help">${escapeHTML(t("dataLocation"))}</label><code class="data-location" id="data-location">${escapeHTML(state.status?.data_path || "")}</code>
+      <button class="text-button" id="copy-data-path">${state.language === "vi" ? "Sao chép đường dẫn" : "Copy path"} ↗</button></section>`;
 }
 
 function updateStatus() {
@@ -340,6 +344,7 @@ function renderAssistant() {
   const messages = state.chat.map((message) => `<div class="chat-message ${message.role}">${escapeHTML(message.text)}</div>`).join("");
   return `<div class="assistant-panel"><div class="welcome-row"><div><h1>${escapeHTML(t("assistantTitle"))}</h1></div></div>
     <div class="assistant-intro"><span class="assistant-mark">✳</span><div><h2>Zu</h2><p>${escapeHTML(t("assistantIntro"))}</p></div></div>
+    <div class="chat-history-status"><span>${escapeHTML(t("historySaved"))} ${state.status?.conversation_count || 0} ${escapeHTML(t("historyCount"))}.</span>${state.status?.conversation_count ? `<button class="text-button" id="clear-chat">${escapeHTML(t("clearHistory"))} ×</button>` : ""}</div>
     ${!state.documents.length ? `<div class="alert assistant-warning">${escapeHTML(t("noAssistantDocs"))}</div>` : ""}
     <div class="chat-history" id="chat-history">${messages || `<p class="empty-inline">${escapeHTML(t("assistantIntro"))}</p>`}</div>
     <form class="chat-form" id="chat-form"><textarea name="query" placeholder="${escapeHTML(t("askPlaceholder"))}" required maxlength="30000"></textarea>
@@ -543,6 +548,24 @@ document.addEventListener("click", async (event) => {
     updateStatus();
     return;
   }
+  if (event.target.closest("#copy-data-path")) {
+    try {
+      await navigator.clipboard.writeText(state.status?.data_path || "");
+      notify(t("saved"));
+    } catch { notify(state.status?.data_path || ""); }
+    return;
+  }
+  if (event.target.closest("#clear-chat")) {
+    if (!window.confirm(t("clearHistoryConfirm"))) return;
+    try {
+      await api("/api/conversations", { method: "DELETE" });
+      state.chat = [];
+      await loadStatus();
+      render();
+      notify(t("historyCleared"));
+    } catch (error) { notify(error.message); }
+    return;
+  }
   const runButton = event.target.closest("#run-ai");
   if (runButton) {
     const mode = runButton.dataset.mode;
@@ -625,13 +648,30 @@ document.addEventListener("submit", async (event) => {
     render();
     const history = $("#chat-history");
     history?.scrollTo({ top: history.scrollHeight, behavior: "smooth" });
+    let responseText;
+    let responseModel = state.selectedModel;
     try {
       const result = await api("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mode: "assistant", subject: subject.name, query, language: state.language, model: state.selectedModel, combinations: comboPayload() }),
       });
-      state.chat.push({ role: "assistant", text: result.answer });
-    } catch (error) { state.chat.push({ role: "assistant", text: `${t("failed")} ${error.message}` }); }
+      responseText = result.answer;
+      responseModel = result.model || responseModel;
+      state.chat.push({ role: "assistant", text: responseText });
+    } catch (error) {
+      responseText = `${t("failed")} ${error.message}`;
+      state.chat.push({ role: "assistant", text: responseText });
+    }
+    try {
+      await api("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: subject.name, prompt: query, response: responseText, model: responseModel }),
+      });
+      if (state.status) state.status.conversation_count = (state.status.conversation_count || 0) + 1;
+    } catch (error) {
+      notify(`${t("historySaveFailed")} ${error.message}`);
+    }
     render();
     $("#chat-history")?.scrollTo({ top: $("#chat-history").scrollHeight, behavior: "smooth" });
   }
@@ -644,8 +684,18 @@ document.addEventListener("keydown", (event) => {
 async function start() {
   renderCombinationBar();
   render();
-  await Promise.all([loadStatus(), loadDocuments()]);
+  await Promise.all([loadStatus(), loadDocuments(), loadConversations()]);
   if (state.view === "news") refreshNews();
+}
+
+async function loadConversations() {
+  try {
+    const conversations = await api("/api/conversations");
+    state.chat = conversations.flatMap((item) => [
+      { role: "user", text: item.prompt },
+      { role: "assistant", text: item.response },
+    ]);
+  } catch (error) { notify(error.message); }
 }
 
 start();

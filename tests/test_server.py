@@ -78,6 +78,28 @@ class StudyAppTests(unittest.TestCase):
         rows = server.find_documents("nội dung không trùng", "Toán")
         self.assertEqual([row["title"] for row in rows], ["Ghi chú Toán"])
 
+    def test_conversations_are_saved_and_loaded_from_sqlite(self):
+        handler = object.__new__(server.Handler)
+        saved = {}
+        handler.send_json = lambda status, payload: saved.update(status=status, payload=payload)
+
+        handler.create_conversation({
+            "subject": "Toán",
+            "prompt": "Giải thích hàm số bậc hai",
+            "response": "Hàm số có dạng y = ax² + bx + c.",
+            "model": "study-model",
+        })
+        self.assertEqual(saved["status"], 201)
+        self.assertTrue(saved["payload"]["saved"])
+
+        loaded = {}
+        handler.send_json = lambda status, payload: loaded.update(status=status, payload=payload)
+        handler.handle_api_get("/api/conversations", {})
+        self.assertEqual(loaded["status"], 200)
+        self.assertEqual(len(loaded["payload"]), 1)
+        self.assertEqual(loaded["payload"][0]["prompt"], "Giải thích hàm số bậc hai")
+        self.assertEqual(loaded["payload"][0]["response"], "Hàm số có dạng y = ax² + bx + c.")
+
     def test_generated_quiz_uses_ollama_json_format(self):
         responses = []
         for answer in ('{"questions": []}', '{"questions": []}'):

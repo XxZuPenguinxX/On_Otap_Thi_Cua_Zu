@@ -129,6 +129,16 @@ python server.py
 
 Sau đó mở `http://127.0.0.1:8766`. Nếu thay đổi cổng, hãy dùng đúng cổng đó xuyên suốt phiên truy cập.
 
+## Mở lại ứng dụng và dữ liệu được lưu ở đâu?
+
+- Trên Windows, sau khi tải mã nguồn về máy, những lần sau bạn chỉ cần mở thư mục `On_Otap_Thi_Cua_Zu` và nhấp đúp `start-localnote.bat`. Cửa sổ dòng lệnh và trình duyệt sẽ được mở; giữ cửa sổ dòng lệnh trong lúc học. Ollama cũng cần đang chạy.
+- Nếu không dùng tệp khởi động, mở PowerShell trong thư mục dự án, chạy `python server.py`, rồi mở `http://127.0.0.1:8765`.
+- Khi muốn thoát, nhấn **Ctrl+C** trong cửa sổ LocalNote hoặc đóng cửa sổ đó. Đóng trình duyệt cũng không xóa dữ liệu.
+- Tài liệu, ghi chú **và các lượt trò chuyện trợ lý đã hoàn tất** được lưu vào SQLite trên ổ cứng. Trên Windows, tệp thường ở `%LOCALAPPDATA%\LocalNote\study.sqlite3` (thường là `C:\Users\<tên-bạn>\AppData\Local\LocalNote\study.sqlite3`); trên macOS/Linux, tệp ở `$XDG_DATA_HOME/LocalNote/study.sqlite3` nếu biến này được đặt, nếu không thì `~/.local/share/LocalNote/study.sqlite3`. Mở **Cài đặt** để xem hoặc sao chép đường dẫn chính xác.
+- Lịch sử gần đây sẽ xuất hiện lại khi bạn mở mục **Trợ lý học tập**. Ứng dụng hiển thị 100 lượt gần nhất. Yêu cầu chưa có câu trả lời hoặc bị ngắt đột ngột có thể chưa được lưu.
+- Sao lưu: dừng LocalNote bằng **Ctrl+C**, sau đó sao chép `study.sqlite3` sang ổ đĩa khác hoặc nơi sao lưu riêng. Khôi phục bằng cách chép tệp sao lưu trở lại thư mục dữ liệu nêu trên khi ứng dụng đã dừng.
+- Tùy chọn ngôn ngữ, model và tổ hợp thi được lưu trong hồ sơ trình duyệt trên máy. Không xóa dữ liệu trình duyệt nếu muốn giữ các lựa chọn này.
+
 ### 6. Bắt đầu ôn tập
 
 1. Chọn **Chọn tổ hợp** ở thanh phía trên. Có thể chọn nhiều tổ hợp cùng lúc; lựa chọn được lưu trong trình duyệt này.
@@ -302,6 +312,16 @@ python server.py
 ```
 
 Then open `http://127.0.0.1:8766`. Use that same port throughout the session.
+
+## Reopening the app and where your data is stored
+
+- On Windows, after downloading the source once, open the `On_Otap_Thi_Cua_Zu` folder and double-click `start-localnote.bat` whenever you want to study again. It opens a command window and your browser; keep the command window open. Ollama must also be running.
+- Without the launcher, open PowerShell in the project folder, run `python server.py`, then open `http://127.0.0.1:8765`.
+- To exit, press **Ctrl+C** in the LocalNote window or close that window. Closing the browser does not delete your data.
+- Documents, notes, **and completed assistant chat turns** are stored in SQLite on your hard drive. On Windows, the file is usually `%LOCALAPPDATA%\LocalNote\study.sqlite3` (typically `C:\Users\<your-name>\AppData\Local\LocalNote\study.sqlite3`); on macOS/Linux, it is `$XDG_DATA_HOME/LocalNote/study.sqlite3` when that variable is set, otherwise `~/.local/share/LocalNote/study.sqlite3`. Open **Settings** to view or copy the exact path.
+- Recent history reappears when you open **Study assistant**. The app displays the most recent 100 turns. A request without a response or interrupted unexpectedly may not be saved.
+- To back up: stop LocalNote with **Ctrl+C**, then copy `study.sqlite3` to another drive or backup location. To restore, copy the backup into the data folder above while the app is stopped.
+- Language, model, and exam-combination preferences are saved in the browser profile on this computer. Do not clear the browser data if you want to keep those preferences.
 
 ### 6. Start studying
 
