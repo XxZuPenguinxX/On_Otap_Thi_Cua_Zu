@@ -108,7 +108,7 @@ class StudyAppTests(unittest.TestCase):
                 {"response": answer}
             ).encode()
             responses.append(response)
-        with patch.object(server.urllib.request, "urlopen", side_effect=responses) as urlopen:
+        with patch.object(server.LOCAL_OPENER, "open", side_effect=responses) as urlopen:
             result = server.generate_with_ollama(
                 "quiz", "Toán", "Đồ thị", "Tài liệu", "vi", "test-model",
                 [{"code": "A00", "subjects": ["Toán"]}], True,
@@ -130,7 +130,7 @@ class StudyAppTests(unittest.TestCase):
                 {"response": answer}
             ).encode()
             responses.append(response)
-        with patch.object(server.urllib.request, "urlopen", side_effect=responses) as urlopen:
+        with patch.object(server.LOCAL_OPENER, "open", side_effect=responses) as urlopen:
             answer = server.generate_with_ollama(
                 "grade", "Ngữ Văn", "Bài thơ Đồng chí của Chính Hữu", "", "vi",
                 "test-model", [], False,
@@ -187,31 +187,34 @@ class StudyAppTests(unittest.TestCase):
         self.assertEqual(model, "only-model")
         self.assertFalse(verified)
 
-    def test_import_blocks_loopback_addresses(self):
-        with self.assertRaisesRegex(ValueError, "mạng riêng"):
-            server.validate_public_url("https://127.0.0.1/private")
+    def test_local_network_guard_blocks_external_requests(self):
+        with patch.object(server.LOCAL_OPENER, "open") as opener:
+            with self.assertRaisesRegex(ValueError, "loopback"):
+                server.local_urlopen("https://example.com/data", timeout=1)
+            opener.assert_not_called()
+            server.local_urlopen("http://127.0.0.1:11434/api/tags", timeout=1)
+            opener.assert_called_once()
 
-    def test_html_import_omits_script_content(self):
-        text = server.extract_html_text(
-            "<html><title>Study</title><p>Visible lesson</p>"
-            "<script>steal()</script></html>"
-        )
-        self.assertIn("Visible lesson", text)
-        self.assertNotIn("steal()", text)
-
-    def test_trusted_search_filters_unknown_publishers(self):
-        xml = b"""<rss><channel>
-          <item><title>Official update</title><link>https://news.google.com/rss/articles/one</link>
-            <source url="https://moet.gov.vn">Ministry</source></item>
-          <item><title>Unknown update</title><link>https://news.google.com/rss/articles/two</link>
-            <source url="https://unknown.example">Unknown</source></item>
-        </channel></rss>"""
+    def test_qwen3_uses_configured_context_and_thinking_default(self):
         response = MagicMock()
-        response.__enter__.return_value.read.return_value = xml
-        with patch.object(server.urllib.request, "urlopen", return_value=response):
-            items, errors = server.search_trusted_sources("giáo dục")
-        self.assertFalse(errors)
-        self.assertEqual([item["source"] for item in items], ["Ministry"])
+        response.__enter__.return_value.read.return_value = json.dumps(
+            {"response": "Local answer"}
+        ).encode()
+        with patch.object(server.LOCAL_OPENER, "open", return_value=response) as opener:
+            server.ollama_generate("qwen3:8b", "system", "prompt", None, 0.4)
+        body = json.loads(opener.call_args.args[0].data)
+        self.assertFalse(body["think"])
+        self.assertEqual(body["options"]["num_ctx"], server.OLLAMA_NUM_CTX)
+        self.assertEqual(body["keep_alive"], server.OLLAMA_KEEP_ALIVE)
+
+    def test_removed_news_routes_return_not_found(self):
+        handler = object.__new__(server.Handler)
+        result = {}
+        handler.send_json = lambda status, payload: result.update(status=status, payload=payload)
+        handler.handle_api_get("/api/news", {})
+        self.assertEqual(result["status"], 404)
+        handler.handle_api_get("/api/search", {})
+        self.assertEqual(result["status"], 404)
 
 
 if __name__ == "__main__":

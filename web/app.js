@@ -31,7 +31,7 @@ const COMBINATIONS = [
 
 const COPY = {
   vi: {
-    today: "Hôm nay", dashboard: "Tổng quan", subjects: "Môn học", library: "Nguồn của bạn", news: "Tin giáo dục", assistant: "Trợ lý học tập", settings: "Cài đặt",
+    today: "Hôm nay", dashboard: "Tổng quan", subjects: "Môn học", library: "Nguồn của bạn", assistant: "Trợ lý học tập", settings: "Cài đặt",
     hello: "Chào bạn, hôm nay mình học gì?", intro: "Gom tài liệu của bạn lại. Zu sẽ giúp tóm tắt, tạo bài luyện tập và chỉ ra điểm cần kiểm tra — ngay trên máy này.",
     focusTitle: "Bắt đầu từ môn bạn đang học", focusHint: "Chọn một môn để mở tài liệu, ôn tập và tự kiểm tra.",
     recentSources: "Nguồn mới thêm", seeAll: "Xem tất cả", noSources: "Chưa có tài liệu nào. Thêm ghi chú, đề cương hoặc đường dẫn của bạn để bắt đầu ôn tập.",
@@ -48,20 +48,17 @@ const COPY = {
     libraryTitle: "Nguồn học tập của bạn", libraryHint: "Tài liệu chỉ lưu trên máy đang chạy ứng dụng. Zu dùng chúng để tạo tổng hợp, câu hỏi và câu trả lời có căn cứ.",
     pasteSource: "Thêm ghi chú hoặc nội dung", sourceTitle: "Tên tài liệu", subject: "Môn học", chooseSubject: "Chọn môn", contentLabel: "Nội dung", contentPlaceholder: "Dán ghi chú, đề cương hoặc đoạn trích…", saveSource: "Lưu nguồn",
     uploadTitle: "Tải tệp lên", uploadHint: "Hỗ trợ .txt, .md và PDF có văn bản chọn được (tối đa 5 MB).", chooseFile: "Chọn tệp", uploadFile: "Thêm tệp vào thư viện",
-    importTitle: "Nhập từ đường dẫn", importHint: "Chỉ nhập trang HTTPS công khai; địa chỉ mạng riêng bị chặn.", urlLabel: "Đường dẫn HTTPS", importUrl: "Lưu trang web",
     delete: "Xóa", addedAt: "Đã thêm", noDocsYet: "Chưa có nguồn học tập", chars: "ký tự", documentCount: "tài liệu",
-    newsTitle: "Góc tin giáo dục", newsHint: "Tin mới từ RSS của các báo lớn. Mở bài gốc để xem đầy đủ; ứng dụng không tự xác nhận mọi nội dung trong bài.",
-    searchNews: "Tìm trong tin mới…", searchTrusted: "Tìm trên nguồn uy tín", refreshNews: "Cập nhật tin", trusted: "Nguồn báo được chọn", loadingNews: "Đang lấy tin mới…", noNews: "Không tìm thấy tin phù hợp.", newsUnavailable: "Chưa tải được tin từ một số nguồn. Bạn vẫn có thể mở trực tiếp các trang báo bên dưới.",
     assistantTitle: "Trợ lý học tập của bạn", assistantIntro: "Hỏi về bài đang học. Zu ưu tiên tài liệu bạn đã thêm và sẽ nói rõ khi chưa đủ căn cứ.", askPlaceholder: "Nhập câu hỏi của bạn…", send: "Gửi", noAssistantDocs: "Chưa có nguồn của bạn; câu trả lời chung có thể không khớp đề cương.",
-    ollamaReady: "AI local đã sẵn sàng", ollamaMissing: "Chưa kết nối Ollama", ollamaNoModel: "Chưa có mô hình", checking: "Đang kiểm tra…", useModel: "Mô hình", installModel: "Cài Ollama, rồi tải model chat tương thích mà bạn chọn.",
-    settingsTitle: "Cài đặt", settingsHint: "Chọn mô hình đã cài trong Ollama. Zu không tải mô hình hoặc gửi tài liệu lên đám mây.", modelLabel: "Mô hình AI local", noModels: "Chưa có mô hình Ollama", settingsLanguage: "Ngôn ngữ giao diện", settingsData: "Dữ liệu học tập", settingsDataHint: "Tài liệu và ghi chú được lưu trong SQLite trên máy này.",
+    ollamaReady: "AI local đã sẵn sàng", ollamaMissing: "Chưa kết nối Ollama", ollamaNoModel: "Chưa có mô hình", modelFallback: "Mô hình ưu tiên chưa được cài; LocalNote đã chọn một mô hình chat khác có sẵn.", checking: "Đang kiểm tra…", useModel: "Mô hình", installModel: "Cài Ollama, rồi tải model chat tương thích mà bạn chọn.",
+    settingsTitle: "Cài đặt", settingsHint: "Chọn mô hình đã cài trong Ollama. Zu không tải mô hình hoặc gửi tài liệu lên đám mây.", modelLabel: "Mô hình AI local", noModels: "Chưa có mô hình Ollama", settingsLanguage: "Ngôn ngữ giao diện", thinkingMode: "Bật chế độ suy nghĩ của Qwen3", thinkingHint: "Mặc định tắt để phản hồi nhanh hơn; chỉ áp dụng nếu mô hình hỗ trợ.", settingsData: "Dữ liệu học tập", settingsDataHint: "Tài liệu và ghi chú được lưu trong SQLite trên máy này.",
     dataLocation: "Tệp dữ liệu trên máy", historySaved: "Lịch sử trợ lý được lưu trên máy này.", historyCount: "lượt đã lưu", clearHistory: "Xóa lịch sử trò chuyện", clearHistoryConfirm: "Xóa toàn bộ lịch sử trợ lý khỏi máy này? Tài liệu nguồn sẽ không bị xóa.", historyCleared: "Đã xóa lịch sử trò chuyện.", historySaveFailed: "Không lưu được lượt trò chuyện vào ổ đĩa.",
     save: "Lưu", saved: "Đã lưu", cancelled: "Đã hủy",     done: "Hoàn tất", submitQuiz: "Chấm bài luyện tập", quizScore: "Kết quả", quizEmpty: "Mô hình chưa trả về định dạng câu hỏi hợp lệ. Hãy thử tạo lại.", essayInvalid: "Chưa thể hiển thị nhận xét theo đúng tiêu chí. Hãy thử lại.", quizSource: "Nguồn", language: "Ngôn ngữ",
-    newsError: "Lỗi tải tin", noSearchResults: "Không tìm thấy môn phù hợp.", removeConfirm: "Xóa tài liệu này khỏi máy?", emptyResponse: "Mô hình chưa trả về nội dung.",
+    noSearchResults: "Không tìm thấy môn phù hợp.", removeConfirm: "Xóa tài liệu này khỏi máy?", emptyResponse: "Mô hình chưa trả về nội dung.",
     useCombo: "Đang ưu tiên", deepFocus: "Zu sẽ đào sâu môn thuộc tổ hợp bạn chọn.", examFocus: "Môn này được tổng hợp theo hướng ôn thi.", studyAction: "Học ngay", welcomeDate: "Một bước nhỏ hôm nay, tự tin hơn ngày mai.", sourceFrom: "Nguồn", sending: "Đang gửi…",
   },
   en: {
-    today: "Today", dashboard: "Overview", subjects: "Subjects", library: "Your sources", news: "Education news", assistant: "Study assistant", settings: "Settings",
+    today: "Today", dashboard: "Overview", subjects: "Subjects", library: "Your sources", assistant: "Study assistant", settings: "Settings",
     hello: "What shall we study today?", intro: "Bring your learning materials together. Zu can summarize, create practice questions, and flag points to verify — right on this computer.",
     focusTitle: "Start with a subject", focusHint: "Choose a subject to open your sources, review, and self-test.",
     recentSources: "Recently added", seeAll: "See all", noSources: "No materials yet. Add your notes, study guide, or a link to start reviewing.",
@@ -78,16 +75,13 @@ const COPY = {
     libraryTitle: "Your study sources", libraryHint: "Materials stay on the computer running this app. Zu uses them to ground summaries, quizzes, and answers.",
     pasteSource: "Add notes or text", sourceTitle: "Source title", subject: "Subject", chooseSubject: "Choose a subject", contentLabel: "Content", contentPlaceholder: "Paste notes, a study guide, or an excerpt…", saveSource: "Save source",
     uploadTitle: "Upload a file", uploadHint: "Supports .txt, .md, and selectable-text PDF (up to 5 MB).", chooseFile: "Choose file", uploadFile: "Add file to library",
-    importTitle: "Import from a link", importHint: "HTTPS public pages only; private-network addresses are blocked.", urlLabel: "HTTPS URL", importUrl: "Save web page",
     delete: "Delete", addedAt: "Added", noDocsYet: "No study sources yet", chars: "characters", documentCount: "sources",
-    newsTitle: "Education news", newsHint: "Recent headlines from major publishers' RSS feeds. Open the original article; the app does not independently verify every report.",
-    searchNews: "Search recent headlines…", searchTrusted: "Search trusted sources", refreshNews: "Refresh news", trusted: "Selected publishers", loadingNews: "Fetching headlines…", noNews: "No matching headlines found.", newsUnavailable: "Some feeds could not be reached. You can still open the publishers directly below.",
     assistantTitle: "Your study assistant", assistantIntro: "Ask about what you are learning. Zu prioritizes your added sources and says when evidence is insufficient.", askPlaceholder: "Type your question…", send: "Send", noAssistantDocs: "No personal sources yet; general answers may not match your curriculum.",
-    ollamaReady: "Local AI is ready", ollamaMissing: "Ollama not connected", ollamaNoModel: "No model installed", checking: "Checking…", useModel: "Model", installModel: "Install Ollama, then download a compatible chat model of your choice.",
-    settingsTitle: "Settings", settingsHint: "Choose an installed Ollama model. Zu does not download models or send study materials to the cloud.", modelLabel: "Local AI model", noModels: "No Ollama models installed", settingsLanguage: "Interface language", settingsData: "Study data", settingsDataHint: "Documents and notes are stored in SQLite on this computer.",
+    ollamaReady: "Local AI is ready", ollamaMissing: "Ollama not connected", ollamaNoModel: "No model installed", modelFallback: "The preferred model is not installed; LocalNote selected another available chat model.", checking: "Checking…", useModel: "Model", installModel: "Install Ollama, then download a compatible chat model of your choice.",
+    settingsTitle: "Settings", settingsHint: "Choose an installed Ollama model. Zu does not download models or send study materials to the cloud.", modelLabel: "Local AI model", noModels: "No Ollama models installed", settingsLanguage: "Interface language", thinkingMode: "Enable Qwen3 thinking mode", thinkingHint: "Off by default for faster responses; only used by models that support it.", settingsData: "Study data", settingsDataHint: "Documents and notes are stored in SQLite on this computer.",
     dataLocation: "Local database file", historySaved: "Study assistant history is saved on this computer.", historyCount: "saved turns", clearHistory: "Clear chat history", clearHistoryConfirm: "Delete all assistant chat history from this computer? Study sources will not be deleted.", historyCleared: "Chat history cleared.", historySaveFailed: "Could not save this conversation to disk.",
     save: "Save", saved: "Saved", cancelled: "Cancelled",     done: "Done", submitQuiz: "Check answers", quizScore: "Score", quizEmpty: "The model did not return valid questions. Please try again.", essayInvalid: "Feedback did not match the required rubric. Please try again.", quizSource: "Source", language: "Language",
-    newsError: "Feed error", noSearchResults: "No matching subjects found.", removeConfirm: "Delete this source from this computer?", emptyResponse: "The model returned an empty response.",
+    noSearchResults: "No matching subjects found.", removeConfirm: "Delete this source from this computer?", emptyResponse: "The model returned an empty response.",
     useCombo: "Prioritized", deepFocus: "Zu will go deeper on subjects in your selected combinations.", examFocus: "This subject is kept to a concise exam-oriented review.", studyAction: "Study now", welcomeDate: "One small step today, more confidence tomorrow.", sourceFrom: "Source", sending: "Sending…",
   },
 };
@@ -100,12 +94,12 @@ const state = {
   combinations: JSON.parse(localStorage.getItem("zu-combinations") || "[]"),
   status: null,
   selectedModel: localStorage.getItem("zu-model") || "",
+  thinkingMode: localStorage.getItem("zu-thinking-mode") === "true",
   documents: [],
-  news: [],
-  newsErrors: [],
   quiz: null,
   chat: [],
   busy: false,
+  fallbackNoticeShown: false,
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -139,6 +133,7 @@ function renderSettings() {
     <section class="settings-section"><span class="form-label">${escapeHTML(t("settingsLanguage"))}</span>
       <button class="button" id="settings-language">${state.language === "vi" ? "Tiếng Việt · VI" : "English · EN"} ↗</button>
     </section>
+    <section class="settings-section"><label class="setting-toggle-row"><input id="thinking-mode" type="checkbox" ${state.thinkingMode ? "checked" : ""}><span><strong>${escapeHTML(t("thinkingMode"))}</strong><small>${escapeHTML(t("thinkingHint"))}</small></span></label></section>
     <section class="settings-section"><h2>${escapeHTML(t("settingsData"))}</h2><p class="subheading">${escapeHTML(t("settingsDataHint"))} ${state.documents.length} ${escapeHTML(t("documentCount"))}; ${state.status?.conversation_count || 0} ${escapeHTML(t("historyCount"))}.</p>
       <label class="form-help">${escapeHTML(t("dataLocation"))}</label><code class="data-location" id="data-location">${escapeHTML(state.status?.data_path || "")}</code>
       <button class="text-button" id="copy-data-path">${state.language === "vi" ? "Sao chép đường dẫn" : "Copy path"} ↗</button></section>`;
@@ -186,7 +181,11 @@ function renderCombinationBar() {
 }
 
 async function api(url, options = {}) {
-  const response = await fetch(url, options);
+  const requestUrl = new URL(url, location.origin);
+  if (requestUrl.origin !== location.origin || !requestUrl.pathname.startsWith("/api/")) {
+    throw new Error("LocalNote only allows same-origin API requests.");
+  }
+  const response = await fetch(requestUrl, options);
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
   return data;
@@ -196,6 +195,10 @@ async function loadStatus() {
   try { state.status = await api("/api/status"); }
   catch { state.status = { ollama_connected: false, models: [], document_count: 0 }; }
   updateStatus();
+  if (state.status.model_fallback && !state.fallbackNoticeShown) {
+    state.fallbackNoticeShown = true;
+    notify(t("modelFallback"));
+  }
 }
 
 async function loadDocuments() {
@@ -221,7 +224,6 @@ function render() {
   else if (state.view === "subjects") workspace.innerHTML = renderSubjects();
   else if (state.view === "subject") workspace.innerHTML = renderSubjectDetail();
   else if (state.view === "library") workspace.innerHTML = renderLibrary();
-  else if (state.view === "news") workspace.innerHTML = renderNews();
   else if (state.view === "assistant") workspace.innerHTML = renderAssistant();
   else if (state.view === "settings") workspace.innerHTML = renderSettings();
 }
@@ -314,30 +316,10 @@ function renderLibrary() {
         <label><span class="form-label">${escapeHTML(t("chooseFile"))}</span><input class="field" type="file" name="file" accept=".txt,.md,.pdf" required></label>
         <div><button class="button button-primary">${escapeHTML(t("uploadFile"))} ↑</button></div>
       </form>
-      <div class="section-heading"><div><h2>${escapeHTML(t("importTitle"))}</h2><p>${escapeHTML(t("importHint"))}</p></div></div>
-      <form class="source-form" id="url-source-form">
-        <label><span class="form-label">${escapeHTML(t("subject"))}</span><select class="select-field" name="subject" required>${subjectOptions()}</select></label>
-        <label><span class="form-label">${escapeHTML(t("urlLabel"))}</span><input class="field" name="url" type="url" placeholder="https://…" required></label>
-        <div><button class="button button-primary">${escapeHTML(t("importUrl"))} ↗</button></div>
-      </form>
     </section>
     <aside><div class="section-heading"><div><h2>${escapeHTML(t("recentSources"))}</h2><p>${state.documents.length} ${escapeHTML(t("documentCount"))}</p></div></div>
       <div class="source-list">${state.documents.length ? state.documents.map((doc) => `<div class="source-document"><span class="doc-type">${escapeHTML((doc.source_type || "DOC").toUpperCase().slice(0, 4))}</span><div class="line-item-copy"><strong>${escapeHTML(doc.title)}</strong><small>${escapeHTML(doc.subject)} · ${Number(doc.chars).toLocaleString()} ${escapeHTML(t("chars"))}</small></div><button class="icon-button delete-document" data-id="${doc.id}" aria-label="${escapeHTML(t("delete"))}">×</button></div>`).join("") : `<p class="empty-inline">${escapeHTML(t("noDocsYet"))}</p>`}</div>
     </aside></div>`;
-}
-
-function renderNews() {
-  return `<div class="welcome-row"><div class="welcome-copy"><h1>${escapeHTML(t("newsTitle"))}</h1><p class="subheading">${escapeHTML(t("newsHint"))}</p></div><button id="refresh-news" class="button">${escapeHTML(t("refreshNews"))} ↻</button></div>
-    <div class="trusted-sources" id="trusted-source-links"></div>
-    <div class="news-filter"><input class="search-input" id="news-search" type="search" placeholder="${escapeHTML(t("searchNews"))}"><button class="button button-soft" id="news-search-button">${escapeHTML(t("searchTrusted"))} ↗</button></div>
-    ${state.newsErrors.length ? `<div class="alert">${escapeHTML(t("newsUnavailable"))}<br>${state.newsErrors.map((error) => `${escapeHTML(t("newsError"))} — ${escapeHTML(error.source)}: ${escapeHTML(error.message)}`).join("<br>")}</div>` : ""}
-    <div class="news-list" id="news-list">${state.news.length ? renderNewsItems(state.news) : `<p class="empty-inline">${escapeHTML(t("loadingNews"))}</p>`}</div>`;
-}
-
-function renderNewsItems(items) {
-  if (!items.length) return `<p class="empty-inline">${escapeHTML(t("noNews"))}</p>`;
-  return items.map((item) => `<article class="news-item"><div><a href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(item.title)}</a>
-    <p>${escapeHTML(item.description)}</p><div class="news-meta"><span>${escapeHTML(item.published || "")}</span></div></div><span class="news-source">${escapeHTML(item.source)}</span></article>`).join("");
 }
 
 function renderAssistant() {
@@ -432,7 +414,7 @@ async function runAI(mode, query) {
     const data = await api("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode, subject: selectedSubject().name, query, language: state.language, model: state.selectedModel, combinations: comboPayload() }),
+      body: JSON.stringify({ mode, subject: selectedSubject().name, query, language: state.language, model: state.selectedModel, combinations: comboPayload(), thinking_mode: state.thinkingMode }),
     });
     showResult(data, mode);
   } catch (error) {
@@ -446,22 +428,6 @@ function notify(message) {
   toast.classList.add("show");
   clearTimeout(notify.timeout);
   notify.timeout = setTimeout(() => toast.classList.remove("show"), 2800);
-}
-
-async function refreshNews(query = "") {
-  const list = $("#news-list");
-  if (list) list.innerHTML = `<p class="empty-inline">${escapeHTML(t("loadingNews"))}</p>`;
-  try {
-    const params = query ? `?q=${encodeURIComponent(query)}` : "";
-    const data = await api(`${query ? "/api/search" : "/api/news"}${params}`);
-    state.news = data.items;
-    state.newsErrors = data.errors;
-    render();
-    const links = $("#trusted-source-links");
-    if (links) links.innerHTML = `${escapeHTML(t("trusted"))}: ${data.sources.map((source) => `<a href="${escapeHTML(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHTML(source.name)} ↗</a>`).join("")}`;
-  } catch (error) {
-    if (list) list.innerHTML = `<div class="error-panel">${escapeHTML(t("newsUnavailable"))} ${escapeHTML(error.message)}</div>`;
-  }
 }
 
 function openCombinationDialog() {
@@ -506,7 +472,7 @@ function gradeQuiz() {
 
 document.addEventListener("click", async (event) => {
   const viewButton = event.target.closest("[data-view]");
-  if (viewButton) { event.preventDefault(); setView(viewButton.dataset.view); if (state.view === "news" && !state.news.length) refreshNews(); return; }
+  if (viewButton) { event.preventDefault(); setView(viewButton.dataset.view); return; }
   const subButton = event.target.closest("[data-subject]");
   if (subButton) {
     const subject = SUBJECTS.find((item) => item.id === subButton.dataset.subject);
@@ -584,8 +550,6 @@ document.addEventListener("click", async (event) => {
     catch (error) { notify(error.message); }
     return;
   }
-  if (event.target.closest("#refresh-news")) { refreshNews($("#news-search")?.value || ""); return; }
-  if (event.target.closest("#news-search-button")) { refreshNews($("#news-search")?.value.trim() || ""); return; }
 });
 
 function selectModel(event) {
@@ -603,6 +567,10 @@ function selectModel(event) {
 $("#local-model").addEventListener("change", selectModel);
 document.addEventListener("change", (event) => {
   if (event.target.id === "settings-model") selectModel(event);
+  if (event.target.id === "thinking-mode") {
+    state.thinkingMode = event.target.checked;
+    localStorage.setItem("zu-thinking-mode", String(state.thinkingMode));
+  }
 });
 
 document.addEventListener("input", (event) => {
@@ -630,13 +598,6 @@ document.addEventListener("submit", async (event) => {
       await api("/api/documents/upload", { method: "POST", body: data });
       form.reset(); await loadDocuments(); render(); notify(t("saved"));
     } catch (error) { notify(error.message); }
-  } else if (form.id === "url-source-form") {
-    event.preventDefault();
-    const values = Object.fromEntries(new FormData(form).entries());
-    try {
-      await api("/api/documents/import-url", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values) });
-      form.reset(); await loadDocuments(); render(); notify(t("saved"));
-    } catch (error) { notify(error.message); }
   } else if (form.id === "chat-form") {
     event.preventDefault();
     const values = new FormData(form);
@@ -653,7 +614,7 @@ document.addEventListener("submit", async (event) => {
     try {
       const result = await api("/api/ai", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "assistant", subject: subject.name, query, language: state.language, model: state.selectedModel, combinations: comboPayload() }),
+        body: JSON.stringify({ mode: "assistant", subject: subject.name, query, language: state.language, model: state.selectedModel, combinations: comboPayload(), thinking_mode: state.thinkingMode }),
       });
       responseText = result.answer;
       responseModel = result.model || responseModel;
@@ -678,14 +639,12 @@ document.addEventListener("submit", async (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" && event.target.id === "news-search") { event.preventDefault(); refreshNews(event.target.value); }
 });
 
 async function start() {
   renderCombinationBar();
   render();
   await Promise.all([loadStatus(), loadDocuments(), loadConversations()]);
-  if (state.view === "news") refreshNews();
 }
 
 async function loadConversations() {

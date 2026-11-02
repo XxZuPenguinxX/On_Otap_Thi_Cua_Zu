@@ -1,24 +1,17 @@
 from __future__ import annotations
 
-import html
 import http.server
-import ipaddress
 import json
 import os
 import re
-import socket
 import sqlite3
 import sys
-import threading
-import time
 from contextlib import contextmanager
 import urllib.error
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
 from email import policy
 from email.parser import BytesParser
-from html.parser import HTMLParser
 from pathlib import Path
 
 
@@ -26,6 +19,18 @@ ROOT = Path(__file__).resolve().parent
 WEB_ROOT = ROOT / "web"
 PORT = int(os.environ.get("PORT", "8765"))
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+OLLAMA_MODEL_PREFERENCE = tuple(
+    name.strip()
+    for name in os.environ.get("OLLAMA_MODEL_PREFERENCE", "qwen3:8b,gemma3:4b").split(",")
+    if name.strip()
+)
+OLLAMA_NUM_CTX = int(os.environ.get("OLLAMA_NUM_CTX", "8192"))
+OLLAMA_KEEP_ALIVE = os.environ.get("OLLAMA_KEEP_ALIVE", "10m").strip()
+THINKING_MODEL_PREFIXES = tuple(
+    name.strip().lower()
+    for name in os.environ.get("OLLAMA_THINKING_MODEL_PREFIXES", "qwen3").split(",")
+    if name.strip()
+)
 ollama_url_parts = urllib.parse.urlsplit(OLLAMA_URL)
 if (
     ollama_url_parts.scheme != "http"
@@ -38,22 +43,12 @@ if (
 ):
     raise SystemExit("OLLAMA_URL must point to a local Ollama service on loopback.")
 DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "")
+if not 256 <= OLLAMA_NUM_CTX <= 65536:
+    raise SystemExit("OLLAMA_NUM_CTX must be between 256 and 65536.")
+if not OLLAMA_KEEP_ALIVE or len(OLLAMA_KEEP_ALIVE) > 32:
+    raise SystemExit("OLLAMA_KEEP_ALIVE must be a non-empty Ollama duration.")
 MAX_REQUEST_BYTES = 8 * 1024 * 1024
 MAX_DOCUMENT_CHARS = 1_000_000
-NEWS_FEEDS = [
-    ("VnExpress", "https://vnexpress.net/rss/giao-duc.rss", "vnexpress.net"),
-    ("Tuổi Trẻ", "https://tuoitre.vn/rss/giao-duc.rss", "tuoitre.vn"),
-    ("Thanh Niên", "https://thanhnien.vn/rss/giao-duc.rss", "thanhnien.vn"),
-    ("VietnamNet", "https://vietnamnet.vn/rss/giao-duc.rss", "vietnamnet.vn"),
-]
-TRUSTED_HOSTS = {feed[2] for feed in NEWS_FEEDS} | {"moet.gov.vn"}
-TRUSTED_SOURCE_LINKS = [
-    {"name": name, "url": f"https://{domain}", "domain": domain}
-    for name, _, domain in NEWS_FEEDS
-] + [{"name": "Bộ Giáo dục và Đào tạo", "url": "https://moet.gov.vn", "domain": "moet.gov.vn"}]
-NEWS_CACHE_SECONDS = 600
-news_cache: tuple[float, list[dict], list[dict]] = (0, [], [])
-news_lock = threading.Lock()
 
 
 def data_directory() -> Path:
@@ -108,6 +103,27 @@ def json_bytes(value: object) -> bytes:
     return json.dumps(value, ensure_ascii=False).encode("utf-8")
 
 
+class LocalOnlyRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+LOCAL_OPENER = urllib.request.build_opener(LocalOnlyRedirectHandler)
+
+
+def local_urlopen(request, timeout: int):
+    url = request.full_url if isinstance(request, urllib.request.Request) else str(request)
+    parts = urllib.parse.urlsplit(url)
+    if (
+        parts.scheme != "http"
+        or parts.hostname not in {"127.0.0.1", "localhost", "::1"}
+        or parts.username
+        or parts.password
+    ):
+        raise ValueError("Chỉ cho phép kết nối HTTP tới dịch vụ loopback trên máy này.")
+    return LOCAL_OPENER.open(request, timeout=timeout)
+
+
 def parse_json_object(raw: bytes) -> dict:
     data = json.loads(raw)
     if not isinstance(data, dict):
@@ -148,87 +164,6 @@ def source_context(rows: list[sqlite3.Row]) -> str:
         f"{row['content'][:6000]}"
         for row in rows
     )
-
-
-def validate_public_url(url: str) -> str:
-    parts = urllib.parse.urlsplit(url)
-    if parts.scheme != "https" or not parts.hostname or parts.username or parts.password:
-        raise ValueError("Chỉ chấp nhận đường dẫn HTTPS công khai.")
-    host = parts.hostname.encode("idna").decode("ascii").lower()
-    if host == "localhost" or host.endswith(".localhost"):
-        raise ValueError("Không thể nhập trang trên máy nội bộ.")
-    try:
-        addresses = socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
-    except socket.gaierror as exc:
-        raise ValueError("Không phân giải được tên miền của đường dẫn.") from exc
-    if not addresses or any(
-        not ipaddress.ip_address(item[4][0]).is_global for item in addresses
-    ):
-        raise ValueError("Đường dẫn trỏ tới địa chỉ mạng riêng hoặc không công khai.")
-    return urllib.parse.urlunsplit(("https", host, parts.path or "/", parts.query, ""))
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
-
-
-def fetch_public_page(url: str) -> tuple[str, str]:
-    current = url
-    opener = urllib.request.build_opener(NoRedirect)
-    for _ in range(4):
-        current = validate_public_url(current)
-        request = urllib.request.Request(
-            current,
-            headers={"User-Agent": "LocalNote/1.0 (local study app)", "Accept": "text/html,text/plain"},
-        )
-        try:
-            with opener.open(request, timeout=8) as response:
-                content_type = response.headers.get_content_type()
-                if content_type not in {"text/html", "text/plain", "application/xhtml+xml"}:
-                    raise ValueError("Trang này không cung cấp nội dung văn bản/HTML.")
-                raw = response.read(2_000_001)
-        except urllib.error.HTTPError as exc:
-            if exc.code not in {301, 302, 303, 307, 308}:
-                raise ValueError(f"Không tải được trang (HTTP {exc.code}).") from exc
-            location = exc.headers.get("Location")
-            if not location:
-                raise ValueError("Trang chuyển hướng không có địa chỉ đích.")
-            current = urllib.parse.urljoin(current, location)
-            continue
-        if len(raw) > 2_000_000:
-            raise ValueError("Trang vượt quá giới hạn 2 MB.")
-        return content_type, raw.decode("utf-8", errors="replace")
-    raise ValueError("Trang chuyển hướng quá nhiều lần.")
-
-
-class TextExtractor(HTMLParser):
-    def __init__(self) -> None:
-        super().__init__(convert_charrefs=True)
-        self.parts: list[str] = []
-        self.skip_depth = 0
-
-    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
-        if tag in {"script", "style", "noscript", "svg"}:
-            self.skip_depth += 1
-        elif tag in {"p", "br", "h1", "h2", "h3", "li", "article", "div"} and not self.skip_depth:
-            self.parts.append("\n")
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
-            self.skip_depth -= 1
-        elif tag in {"p", "li", "h1", "h2", "h3"} and not self.skip_depth:
-            self.parts.append("\n")
-
-    def handle_data(self, data: str) -> None:
-        if not self.skip_depth:
-            self.parts.append(data)
-
-
-def extract_html_text(markup: str) -> str:
-    parser = TextExtractor()
-    parser.feed(markup)
-    return re.sub(r"\n{3,}", "\n\n", re.sub(r"[ \t]+", " ", " ".join(parser.parts))).strip()
 
 
 def parse_upload(content_type: str, raw: bytes) -> dict[str, str]:
@@ -273,7 +208,7 @@ def parse_upload(content_type: str, raw: bytes) -> dict[str, str]:
 
 def ollama_tags() -> list[str]:
     request = urllib.request.Request(f"{OLLAMA_URL}/api/tags", headers={"Accept": "application/json"})
-    with urllib.request.urlopen(request, timeout=2) as response:
+    with local_urlopen(request, timeout=2) as response:
         data = json.loads(response.read())
     return [item["name"] for item in data.get("models", []) if item.get("name")]
 
@@ -285,10 +220,9 @@ def choose_model(models: list[str]) -> str:
         name for name in models
         if not any(tag in name.lower() for tag in ("coder", "base", "embed"))
     ]
-    for prefix in ("qwen3:", "gemma3:", "qwen2.5:", "llama3.2:", "mistral:"):
-        match = next((name for name in general_models if name.startswith(prefix)), None)
-        if match:
-            return match
+    for preferred in OLLAMA_MODEL_PREFERENCE:
+        if preferred in general_models:
+            return preferred
     return (general_models or models or [""])[0]
 
 
@@ -408,14 +342,20 @@ def make_prompt(
     return system, user, response_schema(mode)
 
 
-def ollama_generate(model: str, system: str, prompt: str, output_schema: dict | None, temperature: float) -> str:
+def ollama_generate(
+    model: str, system: str, prompt: str, output_schema: dict | None, temperature: float,
+    thinking_mode: bool = False,
+) -> str:
     body: dict[str, object] = {
         "model": model,
         "system": system,
         "prompt": prompt,
         "stream": False,
-        "options": {"temperature": temperature},
+        "keep_alive": OLLAMA_KEEP_ALIVE,
+        "options": {"temperature": temperature, "num_ctx": OLLAMA_NUM_CTX},
     }
+    if any(model.lower().startswith(prefix) for prefix in THINKING_MODEL_PREFIXES):
+        body["think"] = thinking_mode
     if output_schema:
         body["format"] = output_schema
     request = urllib.request.Request(
@@ -425,7 +365,7 @@ def ollama_generate(model: str, system: str, prompt: str, output_schema: dict | 
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=240) as response:
+        with local_urlopen(request, timeout=240) as response:
             data = json.loads(response.read())
     except urllib.error.HTTPError as exc:
         details = exc.read(1000).decode("utf-8", errors="replace")
@@ -482,17 +422,17 @@ def make_verification_prompt(
 
 def generate_with_ollama(
     mode: str, subject: str, query: str, context: str, language: str, model: str,
-    combinations: list[dict[str, object]], deep_focus: bool,
+    combinations: list[dict[str, object]], deep_focus: bool, thinking_mode: bool = False,
 ) -> str:
     system, prompt, is_quiz = make_prompt(
         mode, subject, query, context, language, combinations, deep_focus
     )
     temperature = 0.25 if mode in {"check", "quiz", "grade"} else 0.45
-    draft = ollama_generate(model, system, prompt, is_quiz, temperature)
+    draft = ollama_generate(model, system, prompt, is_quiz, temperature, thinking_mode)
     verification_system, verification_prompt = make_verification_prompt(
         mode, query, context, language, is_quiz, draft
     )
-    verified = ollama_generate(model, verification_system, verification_prompt, is_quiz, 0.1)
+    verified = ollama_generate(model, verification_system, verification_prompt, is_quiz, 0.1, thinking_mode)
     return normalize_essay_feedback(verified, query, context) if mode == "grade" else verified
 
 
@@ -569,6 +509,7 @@ def normalize_essay_feedback(answer: str, query: str, context: str) -> str:
 def generate_verified_with_ollama(
     mode: str, subject: str, query: str, context: str, language: str, model: str,
     combinations: list[dict[str, object]], deep_focus: bool, installed_models: list[str],
+    thinking_mode: bool = False,
 ) -> tuple[str, str, bool]:
     system, prompt, is_quiz = make_prompt(
         mode, subject, query, context, language, combinations, deep_focus
@@ -590,7 +531,7 @@ def generate_verified_with_ollama(
     draft_model = model
     for candidate in [model] + alternatives:
         try:
-            draft = ollama_generate(candidate, system, prompt, is_quiz, temperature)
+            draft = ollama_generate(candidate, system, prompt, is_quiz, temperature, thinking_mode)
             if mode == "grade":
                 draft = normalize_essay_feedback(draft, query, context)
             draft_model = candidate
@@ -610,7 +551,7 @@ def generate_verified_with_ollama(
     for candidate in verification_models:
         try:
             answer = ollama_generate(
-                candidate, verification_system, verification_prompt, is_quiz, 0.1
+                candidate, verification_system, verification_prompt, is_quiz, 0.1, thinking_mode
             )
             if mode == "grade":
                 answer = normalize_essay_feedback(answer, query, context)
@@ -618,87 +559,6 @@ def generate_verified_with_ollama(
         except (RuntimeError, urllib.error.URLError, OSError):
             continue
     return draft, draft_model, False
-
-
-def fetch_news() -> tuple[list[dict], list[dict]]:
-    global news_cache
-    now = time.time()
-    with news_lock:
-        if now - news_cache[0] < NEWS_CACHE_SECONDS:
-            return news_cache[1], news_cache[2]
-    items: list[dict] = []
-    errors: list[dict] = []
-    for name, feed_url, domain in NEWS_FEEDS:
-        try:
-            request = urllib.request.Request(feed_url, headers={"User-Agent": "LocalNote/1.0"})
-            with urllib.request.urlopen(request, timeout=5) as response:
-                root = ET.fromstring(response.read(1_500_000))
-            for entry in root.findall(".//item")[:15]:
-                title = (entry.findtext("title") or "").strip()
-                link = (entry.findtext("link") or "").strip()
-                description = re.sub(r"<[^>]+>", " ", entry.findtext("description") or "")
-                parsed = urllib.parse.urlsplit(link)
-                if title and parsed.scheme == "https" and parsed.hostname and (
-                    parsed.hostname == domain or parsed.hostname.endswith("." + domain)
-                ):
-                    items.append({
-                        "title": html.unescape(title),
-                        "url": link,
-                        "description": html.unescape(re.sub(r"\s+", " ", description)).strip()[:320],
-                        "source": name,
-                        "published": (entry.findtext("pubDate") or "").strip(),
-                    })
-        except (OSError, ET.ParseError, urllib.error.URLError, ValueError) as exc:
-            errors.append({"source": name, "message": str(exc)[:180]})
-    unique = {item["url"]: item for item in items}
-    result = list(unique.values())[:40]
-    with news_lock:
-        news_cache = (now, result, errors)
-    return result, errors
-
-
-def search_trusted_sources(query: str) -> tuple[list[dict], list[dict]]:
-    if not query.strip():
-        return [], []
-    if len(query) > 160:
-        raise ValueError("Từ khóa tìm kiếm tối đa 160 ký tự.")
-    sites = " OR ".join(f"site:{domain}" for domain in sorted(TRUSTED_HOSTS))
-    search_term = urllib.parse.quote_plus(f"{query.strip()} ({sites})")
-    feed_url = (
-        "https://news.google.com/rss/search?q=" + search_term
-        + "&hl=vi&gl=VN&ceid=VN:vi"
-    )
-    try:
-        request = urllib.request.Request(
-            feed_url, headers={"User-Agent": "LocalNote/1.0", "Accept": "application/rss+xml"}
-        )
-        with urllib.request.urlopen(request, timeout=8) as response:
-            root = ET.fromstring(response.read(2_000_000))
-    except (OSError, ET.ParseError, urllib.error.URLError) as exc:
-        return [], [{"source": "Google News RSS", "message": str(exc)[:180]}]
-    items = []
-    for entry in root.findall(".//item")[:30]:
-        title = (entry.findtext("title") or "").strip()
-        link = (entry.findtext("link") or "").strip()
-        source_element = entry.find("source")
-        source_name = (source_element.text or "").strip() if source_element is not None else ""
-        source_url = source_element.get("url", "") if source_element is not None else ""
-        source_host = urllib.parse.urlsplit(source_url).hostname or ""
-        if not title or not link or not any(
-            source_host == domain or source_host.endswith("." + domain)
-            for domain in TRUSTED_HOSTS
-        ):
-            continue
-        items.append({
-            "title": html.unescape(title),
-            "url": link,
-            "description": html.unescape(
-                re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", entry.findtext("description") or ""))
-            ).strip()[:320],
-            "source": source_name or source_host,
-            "published": (entry.findtext("pubDate") or "").strip(),
-        })
-    return items, []
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -791,6 +651,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 "ollama_error": error,
                 "models": models,
                 "selected_model": choose_model(models),
+                "configured_model": DEFAULT_MODEL,
+                "model_fallback": bool(DEFAULT_MODEL and models and DEFAULT_MODEL not in models),
+                "num_ctx": OLLAMA_NUM_CTX,
+                "keep_alive": OLLAMA_KEEP_ALIVE,
                 "document_count": document_count,
                 "conversation_count": conversation_count,
                 "data_path": str(DB_PATH),
@@ -808,19 +672,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                        FROM conversations ORDER BY id DESC LIMIT 100"""
                 ).fetchall()
             self.send_json(200, [dict(row) for row in reversed(rows)])
-        elif path == "/api/news":
-            items, errors = fetch_news()
-            term = query.get("q", [""])[0].strip().lower()
-            if term:
-                items = [item for item in items if term in (item["title"] + " " + item["description"]).lower()]
-            self.send_json(200, {"items": items, "errors": errors, "sources": TRUSTED_SOURCE_LINKS})
-        elif path == "/api/search":
-            term = query.get("q", [""])[0].strip()
-            try:
-                items, errors = search_trusted_sources(term)
-                self.send_json(200, {"items": items, "errors": errors, "sources": TRUSTED_SOURCE_LINKS})
-            except ValueError as exc:
-                self.send_json(400, {"error": str(exc)})
         else:
             self.send_json(404, {"error": "Không tìm thấy API."})
 
@@ -835,8 +686,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
             elif path == "/api/documents/upload":
                 data = parse_upload(self.headers.get("Content-Type", ""), raw)
                 self.create_document(data, source_type=Path(data["title"]).suffix.lower().lstrip(".") or "file")
-            elif path == "/api/documents/import-url":
-                self.import_url(parse_json_object(raw))
             elif path == "/api/ai":
                 self.ai_action(parse_json_object(raw))
             elif path == "/api/conversations":
@@ -862,19 +711,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 (title, subject, content, source_type, source_url),
             )
         self.send_json(201, {"id": cursor.lastrowid, "title": title, "subject": subject})
-
-    def import_url(self, data: dict[str, str]) -> None:
-        url = str(data.get("url", "")).strip()
-        subject = str(data.get("subject", "")).strip()
-        if not subject:
-            raise ValueError("Hãy chọn môn cho nguồn web.")
-        _, markup = fetch_public_page(url)
-        content = extract_html_text(markup)[:MAX_DOCUMENT_CHARS]
-        title_match = re.search(r"<title[^>]*>(.*?)</title>", markup, re.I | re.S)
-        title = html.unescape(re.sub(r"\s+", " ", title_match.group(1)).strip()) if title_match else url
-        if len(content) < 80:
-            raise ValueError("Không trích xuất được đủ văn bản từ trang; hãy thử dán nội dung.")
-        self.create_document({"title": title[:200], "subject": subject, "content": content}, "url", url)
 
     def create_conversation(self, data: dict[str, str]) -> None:
         subject = str(data.get("subject", "")).strip()[:120]
@@ -924,9 +760,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             models = ollama_tags()
         except (OSError, urllib.error.URLError) as exc:
-            raise RuntimeError("Không kết nối được Ollama. Hãy mở Ollama và kiểm tra nó đang chạy tại localhost:11434.") from exc
+            raise RuntimeError("Không kết nối được Ollama. Hãy mở Ollama hoặc chạy `ollama serve`.") from exc
         if not models:
-            raise RuntimeError("Ollama chưa có mô hình. Hãy tải một mô hình, ví dụ: ollama pull qwen2.5:7b")
+            raise RuntimeError("Ollama chưa có mô hình chat nào. Cài mô hình bạn muốn dùng bằng lệnh `ollama pull <tên-model>`.")
         if model not in models:
             model = choose_model(models)
         docs = find_documents(query, subject, limit=4)
@@ -934,7 +770,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             raise ValueError("Môn này chưa có tài liệu phù hợp. Hãy thêm nguồn học liệu trước.")
         answer, used_model, verified = generate_verified_with_ollama(
             mode, subject, query, source_context(docs), language, model,
-            combinations, deep_focus, models,
+            combinations, deep_focus, models, data.get("thinking_mode") is True,
         )
         self.send_json(200, {
             "answer": answer,

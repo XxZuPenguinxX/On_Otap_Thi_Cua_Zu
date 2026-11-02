@@ -43,7 +43,9 @@ Các mức model trên chỉ là gợi ý chọn thử, không phải cam kết 
 - Ứng dụng hiện lưu văn bản tài liệu trong SQLite và tìm kiếm theo từ khóa; **chưa cài hoặc yêu cầu vector database**. Vì vậy hiện không có dung lượng vector database riêng.
 - Nếu bổ sung embedding/vector database về sau, dữ liệu vector và chỉ mục sẽ tăng theo số lượng, độ dài tài liệu và model embedding. Hãy dự trù thêm dung lượng; không có con số cố định phù hợp cho mọi thư viện tài liệu.
 
-**Lựa chọn model:** ứng dụng không khóa cứng vào một model. Cài model tương thích bằng Ollama, rồi chọn model đang có trong mục **Cài đặt / Settings**. Có thể đặt model mặc định trước khi mở ứng dụng bằng biến môi trường `OLLAMA_MODEL`.
+**Lựa chọn model:** ứng dụng chỉ hiện model chat đã cài trong Ollama; chọn model trong **Cài đặt / Settings**. Có thể đặt `OLLAMA_MODEL` làm ưu tiên nếu model đã cài. Nếu chưa đặt, ưu tiên thử `qwen3:8b`, sau đó `gemma3:4b`, rồi dùng model chat đầu tiên còn lại; thay thứ tự bằng `OLLAMA_MODEL_PREFERENCE`. Context mặc định là 8192 (`OLLAMA_NUM_CTX`) và thời gian giữ model là `10m` (`OLLAMA_KEEP_ALIVE`).
+
+**Lưu ý GPU:** trên RTX 3050 6 GB VRAM và 16 GB RAM, model 8B có thể tràn sang RAM hệ thống và chạy chậm hơn. Hãy thử model nhỏ hơn hoặc giảm `OLLAMA_NUM_CTX` nếu thiếu bộ nhớ.
 
 ## Cài đặt chi tiết trên Windows
 
@@ -143,19 +145,18 @@ Sau đó mở `http://127.0.0.1:8766`. Nếu thay đổi cổng, hãy dùng đú
 
 1. Chọn **Chọn tổ hợp** ở thanh phía trên. Có thể chọn nhiều tổ hợp cùng lúc; lựa chọn được lưu trong trình duyệt này.
 2. AI sẽ ưu tiên phân tích sâu các môn nằm trong tổ hợp đã chọn. Môn chưa nằm trong tổ hợp vẫn có thể ôn theo hướng tổng hợp kiến thức thi.
-3. Mở **Nguồn của bạn** để thêm ghi chú/dán văn bản, tải `.txt`, `.md`, PDF có văn bản hoặc nhập đường dẫn HTTPS công khai.
+3. Mở **Nguồn của bạn** để thêm ghi chú/dán văn bản hoặc tải `.txt`, `.md`, PDF có văn bản. LocalNote không tải nội dung từ URL.
 4. Chọn một môn rồi chọn **Tổng hợp**, **Đối chiếu lỗi**, hoặc **Bài kiểm tra**. Bài kiểm tra gồm 5 câu trắc nghiệm; sau khi chọn đáp án, nhấn **Chấm bài luyện tập** để xem đáp án và giải thích.
 5. Riêng **Ngữ Văn**, chọn **Chấm bài Văn**, dán bài viết và yêu cầu nhận xét. Phản hồi là góp ý tham khảo theo tiêu chí, không phải điểm thi chính thức.
-6. **Trợ lý học tập** hỗ trợ hỏi đáp theo môn. **Tin giáo dục** hiển thị tin từ RSS của VnExpress, Tuổi Trẻ, Thanh Niên và VietnamNet; ô tìm kiếm tra cứu trên các nguồn báo đã chọn. Liên kết tới trang chính thức của Bộ Giáo dục và Đào tạo cũng có sẵn. Mở liên kết để đọc bài gốc.
+6. **Trợ lý học tập** hỗ trợ hỏi đáp theo môn, lưu lịch sử trên máy và ưu tiên nguồn tài liệu đã thêm.
 7. Chuyển giao diện Việt/Anh bằng nút **EN/VI** ở góc trên; đổi model đã cài trong mục **Cài đặt**.
 
 ## Dữ liệu, quyền riêng tư và giới hạn
 
 - Ứng dụng chỉ lắng nghe tại `127.0.0.1`, không mở máy chủ ra mạng nội bộ.
-- AI chạy qua Ollama tại máy, không gửi tài liệu tới dịch vụ AI đám mây.
+- AI chạy qua Ollama tại máy, không gửi tài liệu tới dịch vụ AI đám mây. Sau khi cài đặt, các yêu cầu mạng của ứng dụng chỉ đi tới Ollama trên loopback và API của chính LocalNote.
 - Cơ sở dữ liệu mặc định ở `%LOCALAPPDATA%\LocalNote\study.sqlite3`. Tệp này nằm ngoài thư mục Git; tài liệu tải lên không được đưa vào repository.
-- Chỉ tính năng tin giáo dục và nhập trang web cần Internet. Nhập trang web chỉ nhận HTTPS công khai, chặn địa chỉ mạng riêng và giới hạn kích thước.
-- Tin mới được lấy từ RSS; kết quả tìm kiếm nguồn dùng Google News RSS và chỉ giữ bài có nguồn thuộc danh sách nhà xuất bản được chọn. Đây không phải dịch vụ kiểm chứng sự thật.
+- Ứng dụng không yêu cầu Internet khi chạy. Việc tải mã nguồn, cài Ollama/model hoặc thư viện Python cần Internet trong quá trình thiết lập.
 - AI có thể sai, thiếu hoặc diễn giải khác tài liệu. Hãy đối chiếu trích dẫn với nguồn gốc và thông tin thi chính thức.
 - Mỗi câu trả lời AI chạy qua hai lượt: lượt đầu tạo bản nháp; lượt sau trên Ollama đối chiếu với nguồn và yêu cầu. Nếu lượt sau gặp giới hạn phần cứng, ứng dụng thử các mô hình local nhẹ hơn đã cài; giao diện ghi rõ khi không hoàn thành xác minh. Cách này giảm lỗi nhưng không bảo đảm tuyệt đối.
 - PDF chỉ trích xuất văn bản, không nhận dạng chữ trong ảnh. Không tải lên tài liệu vượt quá giới hạn ứng dụng.
@@ -173,11 +174,10 @@ python -m unittest discover -s tests -v
 | Hiện tượng | Cách xử lý |
 |---|---|
 | `python` không được nhận diện | Cài lại Python từ python.org, bật **Add python.exe to PATH**, rồi mở PowerShell mới. |
-| Ứng dụng báo chưa kết nối Ollama | Mở ứng dụng Ollama, kiểm tra Ollama đang chạy, sau đó tải một model chat tương thích bạn chọn, ví dụ `ollama pull qwen3:8b`. |
+| Ứng dụng báo chưa kết nối Ollama | Mở ứng dụng Ollama hoặc chạy `ollama serve`. |
 | Không thấy mô hình hoặc mô hình sai tên | Chạy `ollama list`; đặt `$env:OLLAMA_MODEL = "tên-mô-hình"` rồi chạy lại `python server.py`. |
 | Không tạo được tổng hợp/bài kiểm tra | Thêm tài liệu cho đúng môn, bảo đảm tài liệu có nội dung trích xuất được và kiểm tra Ollama còn hoạt động. |
 | Không nhập được PDF | Chạy `python -m pip install -r requirements.txt`; PDF scan cần OCR bên ngoài ứng dụng. |
-| Tin mới hoặc tìm kiếm không tải | Kiểm tra Internet; RSS của nhà xuất bản hoặc Google News có thể tạm thời không phản hồi. |
 | Cổng 8765 đang bận | Chạy `$env:PORT = "8766"` rồi `python server.py`, sau đó mở cổng 8766. |
 
 ---
@@ -227,7 +227,9 @@ These model tiers are suggestions to try, not a guarantee that a model will fit 
 - The app currently stores document text in SQLite and searches by keyword; it **does not install or require a vector database**. There is currently no separate vector-database storage requirement.
 - If an embedding/vector database is added later, vectors and indexes will grow with document count, document length, and embedding model. Allow additional storage; there is no single fixed estimate for every document collection.
 
-**Model selection:** the app is not locked to a single model. Install a compatible model with Ollama, then select an installed model from **Cài đặt / Settings**. You can set a default with the `OLLAMA_MODEL` environment variable before starting the app.
+**Model selection:** the app lists only chat models installed in Ollama; select one in **Settings**. Set `OLLAMA_MODEL` to prefer an installed model. Otherwise it tries `qwen3:8b`, then `gemma3:4b`, then the first remaining chat model; change the order with `OLLAMA_MODEL_PREFERENCE`. The default context size is 8192 (`OLLAMA_NUM_CTX`) and the model keep-alive is `10m` (`OLLAMA_KEEP_ALIVE`).
+
+**GPU note:** with an RTX 3050 6 GB VRAM and 16 GB RAM, an 8B model may spill into system RAM and run more slowly. Try a smaller model or lower `OLLAMA_NUM_CTX` if memory is insufficient.
 
 ## Detailed installation on Windows
 
@@ -327,19 +329,18 @@ Then open `http://127.0.0.1:8766`. Use that same port throughout the session.
 
 1. Select **Chọn tổ hợp** (Choose combinations) in the top bar. You can select multiple combinations; the selection is saved in this browser.
 2. AI prioritizes deeper analysis for subjects in your selected combinations. Other subjects remain available for concise exam-oriented review.
-3. Open **Nguồn của bạn** (Your sources) to paste notes, upload `.txt`, `.md`, or text-based PDF files, or import a public HTTPS page.
+3. Open **Your sources** to paste notes or upload `.txt`, `.md`, or text-based PDF files. LocalNote does not fetch content from URLs.
 4. Choose a subject and select **Tổng hợp** (Summary), **Đối chiếu lỗi** (Double-check), or **Bài kiểm tra** (Practice quiz). Each quiz has five multiple-choice questions. Select answers and choose **Chấm bài luyện tập** (Check answers) to see answers and explanations.
 5. For **Ngữ Văn** (Literature), select **Chấm bài Văn** (Grade literature), paste an essay, and request feedback. The response is formative rubric-based feedback, not an official exam grade.
-6. **Trợ lý học tập** (Study assistant) answers subject-related questions. **Tin giáo dục** (Education news) shows RSS headlines from VnExpress, Tuổi Trẻ, Thanh Niên, and VietnamNet; search looks across the selected publishers. A link to the Ministry of Education and Training's official website is also available. Open a link to read the original article.
+6. **Study assistant** answers subject-related questions, keeps local chat history, and prioritizes your added study sources.
 7. Switch between Vietnamese and English with the **EN/VI** button in the top bar; change the installed AI model in **Settings**.
 
 ## Data, privacy, and limitations
 
 - The app listens only on `127.0.0.1`; it does not expose a server to your local network.
-- AI runs through Ollama on your computer; study materials are not sent to a cloud AI service.
+- AI runs through Ollama on your computer; study materials are not sent to a cloud AI service. Once installed, the app's network requests are limited to loopback Ollama and LocalNote's own API.
 - The default database is `%LOCALAPPDATA%\LocalNote\study.sqlite3`. It is outside the Git folder; uploaded materials are not included in the repository.
-- Only education news and web-page import require Internet access. Web import accepts public HTTPS pages, blocks private-network addresses, and enforces size limits.
-- Headlines come from RSS. Source search uses Google News RSS and keeps results whose publisher is on the selected publisher allow-list. This is not a fact-checking service.
+- The app does not require Internet access at runtime. Downloading source code, installing Ollama/models, or Python packages requires Internet during setup.
 - AI can be wrong, incomplete, or interpret material differently. Verify citations against the original sources and official exam information.
 - Each AI response uses two passes: the first drafts an answer; the second Ollama pass checks it against the sources and request. If the second pass hits a hardware limit, the app tries smaller installed local models and clearly labels an answer when verification could not complete. This reduces errors but cannot guarantee correctness.
 - PDFs are text-extracted; text inside images is not recognized. Do not upload documents that exceed the app's limits.
@@ -357,9 +358,8 @@ python -m unittest discover -s tests -v
 | Issue | What to do |
 |---|---|
 | `python` is not recognized | Reinstall Python from python.org, enable **Add python.exe to PATH**, and open a new PowerShell window. |
-| The app cannot connect to Ollama | Open the Ollama app, confirm it is running, and download a compatible chat model of your choice, for example `ollama pull qwen3:8b`. |
+| The app cannot connect to Ollama | Open the Ollama app or run `ollama serve`. |
 | No model is listed or the wrong model is selected | Run `ollama list`; set `$env:OLLAMA_MODEL = "model-name"` and restart `python server.py`. |
 | Summary or quiz generation fails | Add a document for the selected subject, ensure it contains extractable text, and check that Ollama is running. |
 | PDF import fails | Run `python -m pip install -r requirements.txt`; scanned PDFs need OCR outside this app. |
-| Headlines or search do not load | Check your Internet connection; a publisher RSS feed or Google News may be temporarily unavailable. |
 | Port 8765 is already in use | Run `$env:PORT = "8766"` and then `python server.py`; open port 8766. |
