@@ -16,4 +16,4 @@ The app is an **Operate** workspace for repeated study sessions on a personal co
 
 ## Interaction
 
-Use clear selected, hover, loading, error, and empty states. Keep focus rings visible. Do not silently substitute cloud AI or make unsupported claims about official marks or source accuracy. Users can change language and exam combinations without losing saved documents.
+Use clear selected, hover, loading, error, and empty states. Keep focus rings visible. A searchable command menu and short navigation keys make repeated subject switching faster without replacing the visible navigation. Do not silently substitute cloud AI or make unsupported claims about official marks or source accuracy. Users can change language and exam combinations without losing saved documents.

@@ -43,6 +43,19 @@ class ThemeStudioIntegrationTests(unittest.TestCase):
         self.assertIn("data-smart-calm", stylesheet)
         self.assertIn("prefers-reduced-motion: reduce", stylesheet)
 
+    def test_command_menu_and_keyboard_shortcuts_are_present(self):
+        index = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+        app = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+        stylesheet = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
+
+        self.assertIn('id="command-dialog"', index)
+        self.assertIn('id="command-search"', index)
+        self.assertIn('aria-keyshortcuts="Control+K Meta+K"', index)
+        self.assertIn('event.key.toLowerCase() === "k"', app)
+        self.assertIn('event.altKey && /^[1-5]$/.test(event.key)', app)
+        self.assertIn('event.key === "/"', app)
+        self.assertIn(".command-item", stylesheet)
+
 
 if __name__ == "__main__":
     unittest.main()

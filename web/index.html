@@ -44,6 +44,7 @@
         <div class="top-actions">
           <span class="connection-pill" id="connection-pill"><i></i><span id="connection-label">Đang kết nối AI…</span></span>
           <select class="model-select" id="local-model" aria-label="Mô hình AI local" disabled></select>
+          <button class="command-trigger" id="open-command" type="button" aria-label="Mở bảng lệnh (Ctrl+K hoặc ⌘K)" aria-keyshortcuts="Control+K Meta+K" title="Bảng lệnh · Ctrl+K / ⌘K">⌕ <span>Ctrl K</span></button>
           <button class="language-switch" id="language-toggle" aria-label="Switch language">EN <span>↗</span></button>
           <button class="avatar" title="Zu">Z</button>
         </div>
@@ -69,6 +70,15 @@
     </form>
     <div id="combination-options" class="combination-options"></div>
     <div class="dialog-foot"><span data-vi="Bạn có thể đổi lựa chọn bất cứ lúc nào." data-en="You can change this anytime.">Bạn có thể đổi lựa chọn bất cứ lúc nào.</span><button class="button button-primary" id="save-combinations" data-vi="Lưu tổ hợp" data-en="Save choices">Lưu tổ hợp</button></div>
+  </dialog>
+  <dialog id="command-dialog" class="dialog command-dialog" aria-labelledby="command-title">
+    <div class="command-dialog-head">
+      <div><h2 id="command-title">Bảng lệnh nhanh</h2><p id="command-description">Tìm nhanh và mở một khu vực của LocalNote.</p></div>
+      <form method="dialog"><button class="icon-button" aria-label="Đóng bảng lệnh">×</button></form>
+    </div>
+    <label class="command-search-wrap"><span aria-hidden="true">⌕</span><input class="search-input" id="command-search" type="search" autocomplete="off" placeholder="Gõ để tìm..." aria-label="Tìm lệnh"></label>
+    <div id="command-list" class="command-list"></div>
+    <p class="command-hint" id="command-hint">Enter mở kết quả đầu tiên · Esc đóng · Alt+1–5 chuyển khu vực</p>
   </dialog>
   <div id="toast" class="toast" role="status"></div>
   <script src="/app.js" defer></script>

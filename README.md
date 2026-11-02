@@ -151,6 +151,7 @@ Sau đó mở `http://127.0.0.1:8766`. Nếu thay đổi cổng, hãy dùng đú
 6. **Trợ lý học tập** hỗ trợ hỏi đáp theo môn, lưu lịch sử trên máy và ưu tiên nguồn tài liệu đã thêm.
 7. Chuyển giao diện Việt/Anh bằng nút **EN/VI** ở góc trên; đổi model đã cài trong mục **Cài đặt**.
 8. Trong **Cài đặt → Theme Studio**, chọn bộ giao diện, tùy chỉnh màu sắc và kiểu chữ, đổi sáng/tối, chỉnh chuyển động; giao diện tùy chỉnh có thể lưu, nhập hoặc xuất JSON.
+9. Mở bảng lệnh bằng **Ctrl+K** (hoặc **⌘K** trên Mac). Gõ để lọc khu vực cần mở; **Alt+1–5** chuyển nhanh giữa Tổng quan, Môn học, Nguồn, Trợ lý và Cài đặt; nhấn **/** để mở tìm kiếm môn học.
 
 ## Dữ liệu, quyền riêng tư và giới hạn
 
@@ -336,6 +337,7 @@ Then open `http://127.0.0.1:8766`. Use that same port throughout the session.
 6. **Study assistant** answers subject-related questions, keeps local chat history, and prioritizes your added study sources.
 7. Switch between Vietnamese and English with the **EN/VI** button in the top bar; change the installed AI model in **Settings**.
 8. In **Settings → Theme Studio**, choose a preset, customize colors and typography, switch light/dark appearance, and tune motion. Custom themes can be saved or imported/exported as JSON.
+9. Open the command menu with **Ctrl+K** (or **⌘K** on Mac) and type to filter sections. Use **Alt+1–5** to switch between Overview, Subjects, Sources, Assistant, and Settings; press **/** to open subject search.
 
 ## Data, privacy, and limitations
 

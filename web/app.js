@@ -14,6 +14,14 @@ const SUBJECTS = [
   { id: "quoc-phong", name: "Giáo dục quốc phòng và an ninh", en: "National Defence and Security", emoji: "🕊️", group: "Kĩ năng" },
 ];
 
+const COMMANDS = [
+  { id: "dashboard", key: "dashboard", icon: "⌂", shortcut: "Alt+1" },
+  { id: "subjects", key: "subjects", icon: "▦", shortcut: "Alt+2" },
+  { id: "library", key: "library", icon: "▤", shortcut: "Alt+3" },
+  { id: "assistant", key: "assistant", icon: "✳", shortcut: "Alt+4" },
+  { id: "settings", key: "settings", icon: "⚙", shortcut: "Alt+5" },
+];
+
 const COMBINATIONS = [
   { id: "A00", subjects: ["Toán", "Vật lí", "Hóa học"] },
   { id: "A01", subjects: ["Toán", "Vật lí", "Tiếng Anh"] },
@@ -32,6 +40,7 @@ const COMBINATIONS = [
 const COPY = {
   vi: {
     today: "Hôm nay", dashboard: "Tổng quan", subjects: "Môn học", library: "Nguồn của bạn", assistant: "Trợ lý học tập", settings: "Cài đặt",
+    commandTitle: "Bảng lệnh nhanh", commandDescription: "Tìm nhanh và mở một khu vực của LocalNote.", commandSearch: "Gõ để tìm...", commandSearchLabel: "Tìm lệnh", commandEmpty: "Không tìm thấy lệnh phù hợp.", commandHint: "Enter mở kết quả đầu tiên · Esc đóng · Alt+1–5 chuyển khu vực · / tìm môn học",
     hello: "Chào bạn, hôm nay mình học gì?", intro: "Gom tài liệu của bạn lại. Zu sẽ giúp tóm tắt, tạo bài luyện tập và chỉ ra điểm cần kiểm tra — ngay trên máy này.",
     focusTitle: "Bắt đầu từ môn bạn đang học", focusHint: "Chọn một môn để mở tài liệu, ôn tập và tự kiểm tra.",
     recentSources: "Nguồn mới thêm", seeAll: "Xem tất cả", noSources: "Chưa có tài liệu nào. Thêm ghi chú, đề cương hoặc đường dẫn của bạn để bắt đầu ôn tập.",
@@ -59,6 +68,7 @@ const COPY = {
   },
   en: {
     today: "Today", dashboard: "Overview", subjects: "Subjects", library: "Your sources", assistant: "Study assistant", settings: "Settings",
+    commandTitle: "Quick command menu", commandDescription: "Find and open a LocalNote area.", commandSearch: "Type to search...", commandSearchLabel: "Search commands", commandEmpty: "No matching commands.", commandHint: "Enter opens the first result · Esc closes · Alt+1–5 changes section · / searches subjects",
     hello: "What shall we study today?", intro: "Bring your learning materials together. Zu can summarize, create practice questions, and flag points to verify — right on this computer.",
     focusTitle: "Start with a subject", focusHint: "Choose a subject to open your sources, review, and self-test.",
     recentSources: "Recently added", seeAll: "See all", noSources: "No materials yet. Add your notes, study guide, or a link to start reviewing.",
@@ -118,6 +128,11 @@ function applyLanguage() {
   document.documentElement.lang = state.language;
   $$("[data-vi][data-en]").forEach((el) => { el.textContent = el.dataset[state.language]; });
   $("#language-toggle").innerHTML = `${state.language === "vi" ? "EN" : "VI"} <span>↗</span>`;
+  const commandTrigger = $("#open-command");
+  if (commandTrigger) {
+    commandTrigger.setAttribute("aria-label", state.language === "vi" ? "Mở bảng lệnh (Ctrl+K hoặc ⌘K)" : "Open command menu (Ctrl+K or ⌘K)");
+    commandTrigger.title = state.language === "vi" ? "Bảng lệnh · Ctrl+K / ⌘K" : "Command menu · Ctrl+K / ⌘K";
+  }
   $("#current-crumb").textContent = state.view === "subject" ? subjectName(selectedSubject()) : t(state.view);
   renderCombinationBar();
 }
@@ -231,6 +246,35 @@ function render() {
 window.localNoteRefreshSettings = () => {
   if (state.view === "settings") render();
 };
+
+function renderCommandList(query = "") {
+  const list = $("#command-list");
+  if (!list) return;
+  const normalized = query.trim().toLocaleLowerCase();
+  const commands = COMMANDS.filter((command) =>
+    !normalized || `${COPY.vi[command.key]} ${COPY.en[command.key]} ${command.shortcut}`.toLocaleLowerCase().includes(normalized)
+  );
+  list.innerHTML = commands.length
+    ? commands.map((command) => `<button class="command-item" type="button" data-command="${command.id}" aria-keyshortcuts="${command.shortcut}"><span class="command-item-icon" aria-hidden="true">${command.icon}</span><span>${escapeHTML(t(command.key))}</span><kbd>${command.shortcut}</kbd></button>`).join("")
+    : `<p class="command-empty">${escapeHTML(t("commandEmpty"))}</p>`;
+}
+
+function openCommandPalette() {
+  const dialog = $("#command-dialog");
+  if (!dialog) return;
+  const combinationDialog = $("#combination-dialog");
+  if (combinationDialog.open) combinationDialog.close();
+  $("#command-title").textContent = t("commandTitle");
+  $("#command-description").textContent = t("commandDescription");
+  $("#command-search").placeholder = t("commandSearch");
+  $("#command-search").setAttribute("aria-label", t("commandSearchLabel"));
+  dialog.querySelector(".command-dialog-head .icon-button")?.setAttribute("aria-label", state.language === "vi" ? "Đóng bảng lệnh" : "Close command menu");
+  $("#command-hint").textContent = t("commandHint");
+  $("#command-search").value = "";
+  renderCommandList();
+  if (!dialog.open) dialog.showModal();
+  $("#command-search").focus();
+}
 
 function subjectTile(subject) {
   const selected = comboNames().includes(subject.name);
@@ -479,6 +523,13 @@ function gradeQuiz() {
 
 document.addEventListener("click", async (event) => {
   if (window.LocalNoteThemeStudio?.handleClick(event, notify)) return;
+  if (event.target.closest("#open-command")) { openCommandPalette(); return; }
+  const commandButton = event.target.closest("[data-command]");
+  if (commandButton) {
+    $("#command-dialog").close();
+    setView(commandButton.dataset.command);
+    return;
+  }
   const viewButton = event.target.closest("[data-view]");
   if (viewButton) { event.preventDefault(); setView(viewButton.dataset.view); return; }
   const subButton = event.target.closest("[data-subject]");
@@ -584,6 +635,7 @@ document.addEventListener("change", (event) => {
 
 document.addEventListener("input", (event) => {
   window.LocalNoteThemeStudio?.handleInput(event);
+  if (event.target.id === "command-search") renderCommandList(event.target.value);
   if (event.target.id === "subject-search") {
     const query = event.target.value.toLocaleLowerCase();
     $$(".subject-row").forEach((row) => { row.hidden = !row.textContent.toLocaleLowerCase().includes(query); });
@@ -651,6 +703,31 @@ document.addEventListener("submit", async (event) => {
 });
 
 document.addEventListener("keydown", (event) => {
+  const editing = event.target instanceof Element && event.target.closest("input, textarea, select, [contenteditable='true']");
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    openCommandPalette();
+    return;
+  }
+  if ($("#command-dialog").open) {
+    if (event.key === "Enter" && event.target.id === "command-search") {
+      event.preventDefault();
+      $("#command-list [data-command]")?.click();
+    } else if (event.key === "ArrowDown" && event.target.id === "command-search") {
+      event.preventDefault();
+      $("#command-list [data-command]")?.focus();
+    }
+    return;
+  }
+  if (editing) return;
+  if (event.altKey && /^[1-5]$/.test(event.key)) {
+    event.preventDefault();
+    setView(COMMANDS[Number(event.key) - 1].id);
+  } else if (event.key === "/") {
+    event.preventDefault();
+    if (state.view !== "subjects") setView("subjects");
+    $("#subject-search")?.focus();
+  }
 });
 
 async function start() {

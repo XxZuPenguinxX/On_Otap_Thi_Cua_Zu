@@ -190,6 +190,22 @@
     return state.variant === "light" ? state.current : deriveLight(state.current);
   }
 
+  function syncAutoVariant() {
+    if (state.auto === "off") return false;
+    const targetVariant = isDark() ? "dark" : "light";
+    const previousVariant = state.variant;
+    const preset = PRESETS.find((item) => item.id === state.preset);
+    state.variant = targetVariant;
+    if (preset) {
+      editorDraft = palette(preset, targetVariant);
+      state.current = { ...editorDraft };
+    } else if (previousVariant !== targetVariant) {
+      state.current = targetVariant === "dark" ? deriveDark(state.current) : deriveLight(state.current);
+      editorDraft = { ...state.current };
+    }
+    return previousVariant !== targetVariant;
+  }
+
   function apply(save = true) {
     const root = document.documentElement;
     const rootStyle = findStyleRule(":root")?.style;
@@ -230,7 +246,9 @@
     for (const [name, value] of Object.entries(variables)) rootStyle.setProperty(name, value);
     root.dataset.motion = state.motion;
     root.dataset.glass = String(theme.glass);
+    root.dataset.themeTone = isDark() ? "dark" : "light";
     rootStyle.setProperty("color-scheme", isDark() ? "dark" : "light");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme.background);
     const previewStyle = findStyleRule(".theme-preview")?.style;
     if (previewStyle) {
       previewStyle.setProperty("--preview-bg", editorDraft.background);
@@ -250,7 +268,11 @@
   }
 
   matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => {
-    if (state.auto === "system") apply(false);
+    if (state.auto === "system") {
+      const changed = syncAutoVariant();
+      apply(false);
+      if (changed) refresh();
+    }
   });
   matchMedia("(prefers-reduced-motion: reduce)").addEventListener?.("change", (event) => {
     if (!state.motionExplicit) {
@@ -262,11 +284,20 @@
     document.documentElement.dataset.pageHidden = String(document.hidden);
   });
   window.setInterval(() => {
-    if (state.auto === "time") apply(false);
+    if (state.auto === "time") {
+      const changed = syncAutoVariant();
+      apply(false);
+      if (changed) refresh();
+    }
   }, 60_000);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && state.auto === "time") apply(false);
+    if (!document.hidden && state.auto === "time") {
+      const changed = syncAutoVariant();
+      apply(false);
+      if (changed) refresh();
+    }
   });
+  syncAutoVariant();
   apply();
 
   function fieldLabel(language, key) { return t(language, key); }
@@ -323,7 +354,7 @@
     if (!preset) return;
     state.preset = id;
     state.selectedCustom = "";
-    state.variant = preset.light ? "light" : "dark";
+    state.variant = state.auto === "off" ? (preset.light ? "light" : "dark") : isDark() ? "dark" : "light";
     editorDraft = palette(preset, state.variant === "dark" ? "dark" : "light");
     state.current = { ...editorDraft };
     apply();

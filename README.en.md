@@ -90,6 +90,7 @@ Then open `http://127.0.0.1:8766`.
 4. For Literature, request rubric-based formative feedback on an essay.
 5. Use **Study assistant** for subject questions grounded in your sources.
 6. In **Settings → Theme Studio**, choose a preset, customize colors and typography, switch light/dark appearance, and tune motion. Custom themes can be saved or imported/exported as JSON.
+7. Open the command menu with **Ctrl+K** (or **⌘K** on Mac) and type to filter sections. Use **Alt+1–5** to switch between Overview, Subjects, Sources, Assistant, and Settings; press **/** to open subject search.
 
 The app does not fetch external websites or education news. Runtime network requests are limited to the LocalNote server and the Ollama server on loopback. Downloading the app, installing Ollama/models, and installing Python packages require Internet during setup.
 
